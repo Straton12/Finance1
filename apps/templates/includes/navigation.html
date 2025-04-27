@@ -1,0 +1,184 @@
+<!-- Navbar -->
+<nav class="navbar material-navbar">
+  <div class="navbar-content">
+    <div class="navbar-title">
+      Dashboard
+    </div>
+    <form class="navbar-search-form">
+      <input type="text" class="navbar-search-input" placeholder="Search...">
+      <button type="submit" class="navbar-search-btn" aria-label="Search">
+        <i class="material-icons">search</i>
+      </button>
+    </form>
+    <div class="navbar-icons">
+      <button class="navbar-icon-btn" aria-label="Grid"><i class="material-icons">apps</i></button>
+      <button class="navbar-icon-btn notification-btn" aria-label="Notifications">
+        <i class="material-icons">notifications</i>
+        <span class="navbar-badge">5</span>
+      </button>
+      <button class="navbar-icon-btn" aria-label="User"><i class="material-icons">person</i></button>
+    </div>
+  </div>
+</nav>
+
+<style>
+  .material-navbar {
+    width: calc(100% - 260px);
+    background: #f5f6fa;
+    border-bottom: 1px solid #e5e7eb;
+    position: fixed;
+    top: 0;
+    left: 260px;
+    z-index: 1000;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    box-shadow: none;
+  }
+
+  .navbar-content {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 64px;
+  }
+
+  .navbar-title {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: #444;
+    letter-spacing: 0.5px;
+    flex: 0 0 auto;
+  }
+
+  .navbar-search-form {
+    display: flex;
+    align-items: center;
+    flex: 1 1 0;
+    max-width: 400px;
+    margin: 0 32px;
+  }
+
+  .navbar-search-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #d1d5db;
+    background: transparent;
+    padding: 8px 0 8px 0;
+    font-size: 1rem;
+    color: #444;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .navbar-search-input:focus {
+    border-bottom: 1.5px solid #2563eb;
+  }
+
+  .navbar-search-btn {
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .navbar-search-btn:hover {
+    background: #f3f4f6;
+  }
+
+  .navbar-icons {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .navbar-icon-btn {
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: #444;
+    font-size: 1.4rem;
+  }
+
+  .navbar-icon-btn:hover {
+    background: #f3f4f6;
+  }
+
+  .navbar-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  @media (max-width: 900px) {
+    .navbar-content {
+      padding: 0 12px;
+    }
+
+    .navbar-title {
+      font-size: 1.1rem;
+    }
+
+    .navbar-search-form {
+      margin: 0 8px;
+    }
+  }
+
+  @media (max-width: 600px) {
+
+    .material-navbar,
+    .navbar-content {
+      height: 48px;
+    }
+
+    .navbar-title {
+      font-size: 1rem;
+    }
+
+    .navbar-search-btn,
+    .navbar-icon-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 1.1rem;
+    }
+
+    .navbar-badge {
+      width: 16px;
+      height: 16px;
+      font-size: 0.7rem;
+    }
+  }
+
+  body {
+    padding-top: 64px;
+  }
+</style>

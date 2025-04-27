@@ -1,0 +1,108 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Register {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+  <div class="row" style="display: flex; justify-content: center; align-items: center; min-height: 80vh; background-color: #f9f9f9;">
+    <div class="col-md-5">
+      <div class="card" style="border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: none; overflow: hidden; margin: 20px 0;">
+        <div class="card-header card-header-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px 30px;">
+          <h4 class="card-title" style="margin: 0; font-weight: 600; text-align: center; color: white; font-size: 1.5rem;">
+            Create Your Account
+          </h4>
+          <p style="text-align: center; color: rgba(255,255,255,0.8); margin: 8px 0 0; font-size: 0.9rem;">
+            Join our e-commerce community today
+          </p>
+        </div>
+        <div class="card-body" style="padding: 30px;">
+
+          <form role="form" action="/" style="margin-top: 10px;">
+              
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group" style="margin-bottom: 20px;">
+                  <label class="bmd-label-floating" style="font-size: 14px; color: #555; margin-bottom: 8px; display: block;">Username</label>
+                  <input type="text" class="form-control" placeholder="Enter your username" style="padding: 12px 15px; border-radius: 8px; border: 1px solid #e0e0e0; font-size: 14px; transition: all 0.3s; width: 100%;">
+                  <small style="display: block; margin-top: 5px; color: #888; font-size: 12px;">Minimum 6 characters</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group" style="margin-bottom: 20px;">
+                  <label class="bmd-label-floating" style="font-size: 14px; color: #555; margin-bottom: 8px; display: block;">Email Address</label>
+                  <input type="email" class="form-control" placeholder="Enter your email" style="padding: 12px 15px; border-radius: 8px; border: 1px solid #e0e0e0; font-size: 14px; transition: all 0.3s; width: 100%;">
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group" style="margin-bottom: 25px;">
+                  <label class="bmd-label-floating" style="font-size: 14px; color: #555; margin-bottom: 8px; display: block;">Password</label>
+                  <input type="password" class="form-control" placeholder="Create a password" style="padding: 12px 15px; border-radius: 8px; border: 1px solid #e0e0e0; font-size: 14px; transition: all 0.3s; width: 100%;">
+                  <small style="display: block; margin-top: 5px; color: #888; font-size: 12px;">At least 8 characters with 1 number</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group" style="margin-bottom: 25px;">
+                  <label class="bmd-label-floating" style="font-size: 14px; color: #555; margin-bottom: 8px; display: block;">Confirm Password</label>
+                  <input type="password" class="form-control" placeholder="Re-enter your password" style="padding: 12px 15px; border-radius: 8px; border: 1px solid #e0e0e0; font-size: 14px; transition: all 0.3s; width: 100%;">
+                </div>
+              </div>
+            </div>
+
+            <div class="row" style="margin-bottom: 20px;">
+              <div class="col-md-12">
+                <div class="form-check" style="display: flex; align-items: flex-start;">
+                  <label class="form-check-label" style="font-size: 13px; color: #666; cursor: pointer; display: flex; align-items: flex-start;">
+                    <input class="form-check-input" type="checkbox" value="" style="margin-right: 8px; margin-top: 3px;">
+                    <span>I agree to the <a href="#" style="color: #667eea; text-decoration: none;">Terms of Service</a> and <a href="#" style="color: #667eea; text-decoration: none;">Privacy Policy</a></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button name="register" class="btn btn-primary pull-left" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); transition: all 0.3s; width: 100%; margin-bottom: 15px;">
+              Create Account
+            </button>
+
+            <div style="text-align: center; margin-top: 15px;">
+              <span style="font-size: 14px; color: #888;">
+                Already have an account? <a href="/login.html" style="color: #667eea; font-weight: 500; text-decoration: none;">Sign In</a>
+              </span>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; position: relative;">
+              <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+              <span style="background: white; padding: 0 15px; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #888;">OR CONTINUE WITH</span>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+              <button type="button" style="border: 1px solid #e0e0e0; background: white; border-radius: 8px; padding: 10px 15px; display: flex; align-items: center; cursor: pointer; transition: all 0.3s; flex: 1; justify-content: center;">
+                <i class="fab fa-google" style="color: #DB4437; margin-right: 8px;"></i>
+                <span style="font-size: 13px;">Google</span>
+              </button>
+              <button type="button" style="border: 1px solid #e0e0e0; background: white; border-radius: 8px; padding: 10000000000000000000px 15px; display: flex; align-items: center; cursor: pointer; transition: all 0.3s; flex: 1; justify-content: center;">
+                <i class="fab fa-facebook-f" style="color: #4267B2; margin-right: 8px;"></i>
+                <span style="font-size: 13px;">Facebook</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

@@ -1,0 +1,263 @@
+<div class="sidebar" data-color="purple" data-background-color="white" data-image="/static/assets/img/sidebar-1.jpg">
+  <style>
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      width: 260px;
+      z-index: 1000;
+      background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+      box-shadow: 5px 0 2rem 0 rgba(136, 152, 170, .15); /* normal left-side shadow */
+    }
+
+    .sidebar-wrapper {
+      padding-top: 75px; /* if you have a top logo */
+    }
+
+    .main-panel {
+      margin-left: 260px; /* leave space on the left */
+      margin-right: 0;
+    }
+
+
+    .sidebar .logo {
+      padding: 25px 15px;
+      margin: 0;
+      display: flex;
+      position: relative;
+      z-index: 4;
+      justify-content: center;
+    }
+
+    .sidebar .logo:after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      right: 15px;
+      width: calc(100% - 30px);
+      height: 1px;
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar .logo a {
+      text-decoration: none;
+      text-align: center;
+      padding: 5px 0;
+      display: block;
+      font-size: 20px;
+      font-weight: 600;
+      color: #4e73df;
+      transition: all 0.3s ease;
+      line-height: 1.4;
+    }
+
+    .sidebar .logo a:hover {
+      transform: translateY(-2px);
+      color: #224abe;
+    }
+
+    .sidebar .sidebar-wrapper {
+      position: relative;
+      height: calc(100vh - 75px);
+      overflow: auto;
+      z-index: 4;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar .sidebar-wrapper::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar .sidebar-wrapper::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar .sidebar-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 3px;
+    }
+
+    .sidebar .nav {
+      margin-top: 20px;
+      padding: 0 15px;
+    }
+
+    .sidebar .nav .nav-item {
+      position: relative;
+      display: block;
+      margin-bottom: 5px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar .nav .nav-item:hover {
+      background: rgba(78, 115, 223, 0.1);
+    }
+
+    .sidebar .nav .nav-item.active {
+      background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    }
+
+    .sidebar .nav .nav-item .nav-link {
+      color: #5a5c69;
+      padding: 12px 15px;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      width: 100%;
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+
+    .sidebar .nav .nav-item.active .nav-link {
+      color: white;
+    }
+
+    .sidebar .nav .nav-item .nav-link i {
+      font-size: 20px;
+      margin-right: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar .nav .nav-item .nav-link p {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .sidebar .nav .nav-item:hover .nav-link {
+      color: #4e73df;
+    }
+
+    .sidebar .nav .nav-item.active:hover .nav-link {
+      color: white;
+    }
+
+    .sidebar .nav .nav-item.active-pro {
+      background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+      margin-top: 20px;
+      border-radius: 12px;
+    }
+
+    .sidebar .nav .nav-item.active-pro .nav-link {
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .sidebar .nav .nav-item.active-pro .nav-link i {
+      font-size: 24px;
+      margin: 0 0 5px 0;
+      display: block;
+    }
+
+    .sidebar .nav .nav-item.active-pro .nav-link p {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .sidebar .nav .nav-item.active-pro:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(78, 115, 223, 0.3);
+    }
+
+    @media (max-width: 991px) {
+      .sidebar {
+        transform: translate3d(-260px, 0, 0);
+      }
+    }
+  </style>
+
+  <div class="logo">
+    <a class="simple-text logo-normal">
+      <i class="material-icons" style="font-size: 32px; margin-bottom: 5px;">account_balance</i>
+      Kenya Financial <br> Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-wrapper">
+    <ul class="nav">
+      {% if request.user.is_authenticated %}
+
+      <li class="nav-item {% if 'ui-icons' in segment %} active {% endif %}">
+        <a class="nav-link" href="/home.html">
+          <i class="material-icons">bubble_chart</i>
+          <p>Home</p>
+        </a>
+      </li>
+
+      <li class="nav-item {% if 'index' in segment %} active {% endif %}">
+        <a class="nav-link" href="/">
+          <i class="material-icons">dashboard</i>
+          <p>Dashboard</p>
+        </a>
+      </li>
+
+      <li class="nav-item {% if 'ui-typography' in segment %} active {% endif %}">
+        <a class="nav-link" href="/ui-typography.html">
+          <i class="material-icons">analytics</i>
+          <p>2021 Analytics</p>
+        </a>
+      </li>
+
+      <li class="nav-item {% if 'ui-tables' in segment %} active {% endif %}">
+        <a class="nav-link" href="/ui-tables.html">
+          <i class="material-icons">table_chart</i>
+          <p>2016 & 2021 Table</p>
+        </a>
+      </li>
+
+      <li class="nav-item {% if 'ui-icons' in segment %} active {% endif %}">
+        <a class="nav-link" href="/ui-icons.html">
+          <i class="material-icons">bubble_chart</i>
+          <p>Icons</p>
+        </a>
+      </li>
+
+      <li class="nav-item {% if 'ui-notifications' in segment %} active {% endif %}">
+        <a class="nav-link" href="/ui-notifications.html">
+          <i class="material-icons">Model comparison</i>
+          <p>Model Comperison</p>
+        </a>
+      </li>
+
+      <li class="nav-item {% if 'ui-maps' in segment %} active {% endif %}">
+        <a class="nav-link" href="/ui-maps.html">
+          <i class="material-icons">trending_up</i>
+          <p>Prediction</p>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+          {% csrf_token %}
+          <button type="submit" class="nav-link">
+            <i class="material-icons">logout</i>
+            <p>Logout</p>
+          </button>
+        </form>
+      </li>
+
+      <!--<li class="nav-item {% if 'page-user' in segment %} active {% endif %}">
+        <a class="nav-link" href="/page-user.html">
+          <i class="material-icons">person</i>
+          <p>User Profile</p>
+        </a>-->
+      </li>
+
+      {% else %}
+      <li class="nav-item active-pro">
+        <a class="nav-link" href="#">
+          <i class="material-icons">unarchive</i>
+          <p>PRO Version</p>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+</div>

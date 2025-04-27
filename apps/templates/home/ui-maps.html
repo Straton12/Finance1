@@ -1,0 +1,779 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Financial Inclusion Predictor {% endblock %}
+
+{% block stylesheets %}
+<style>
+    .predictor-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .sub-header {
+        color: #344767;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .section-header {
+        color: #344767;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 2rem 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #4CAF50;
+    }
+
+    .model-selection {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 2rem 0;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #344767;
+    }
+
+    .form-control {
+        border: 1px solid #d2d6da;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+    }
+
+    .behavioral-info {
+        background-color: #e3f2fd;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+
+    .prediction-result {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 10px;
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    .prediction-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 1rem 0;
+    }
+
+    .prediction-value.excluded {
+        color: #D32F2F;
+    }
+
+    .prediction-value.included {
+        color: #388E3C;
+    }
+
+    .probability-gauge {
+        max-width: 400px;
+        margin: 2rem auto;
+    }
+
+    .factors-list {
+        list-style: none;
+        padding: 0;
+        margin: 2rem 0;
+    }
+
+    .factor-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .factor-impact {
+        font-weight: bold;
+    }
+
+    .factor-impact.positive {
+        color: #D32F2F;
+    }
+
+    .factor-impact.negative {
+        color: #388E3C;
+    }
+
+    .explanation {
+        background-color: #fff3e0;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .btn-predict {
+        background: linear-gradient(195deg, #42424a, #191919);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 2rem;
+    }
+
+    .btn-predict:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .loading {
+        display: none;
+    }
+
+    .loading.active {
+        display: block;
+    }
+
+    /* Updated checkbox styling to match Streamlit */
+    .form-check {
+        padding: 0;
+        margin-bottom: 1rem;
+    }
+
+    .form-check-input {
+        display: none;
+    }
+
+    .form-check-label {
+        display: block;
+        padding: 1rem;
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 0.75rem;
+        color: #344767;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+        position: relative;
+    }
+
+    .form-check-label:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-check-input:checked+.form-check-label {
+        border-color: #4CAF50;
+        background: rgba(76, 175, 80, 0.1);
+    }
+
+    .form-check-input:checked+.form-check-label::after {
+        content: '✓';
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 24px;
+        height: 24px;
+        background: #4CAF50;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Grid layout for checkboxes */
+    .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="predictor-container">
+    <div class="sub-header">Interactive Prediction</div>
+    <p class="lead">
+        This section allows you to input demographic and behavioral information to predict whether someone is likely
+        to be financially excluded. You can try different scenarios to see how various factors influence the prediction.
+    </p>
+
+    <div class="model-selection">
+        <label class="form-label">Choose prediction model:</label>
+        <select id="model-choice" class="form-control">
+            <option value="">Select a model...</option>
+            <option value="Decision Tree (Demographics + Behavior, SMOTE)">Decision Tree (Demographics + Behavior,
+                SMOTE)</option>
+            <option value="Logistic Regression (Demographics + Behavior, Weighted)">Logistic Regression (Demographics +
+                Behavior, Weighted)</option>
+            <option value="Gradient Boosting (Demographics Only, SMOTE)">Gradient Boosting (Demographics Only, SMOTE)
+            </option>
+        </select>
+    </div>
+
+    <form id="prediction-form">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="section-header">Demographic Information</div>
+
+                <div class="form-group">
+                    <label class="form-label">Age</label>
+                    <input type="range" class="form-range" id="age" name="age" min="18" max="100" value="35">
+                    <span id="age-value">35</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    <select class="form-control" name="gender">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Education Level</label>
+                    <select class="form-control" name="education_level">
+                        <option value="no_formal_education">No Formal Education</option>
+                        <option value="primary">Primary</option>
+                        <option value="secondary">Secondary</option>
+                        <option value="university">University</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Residence Type</label>
+                    <select class="form-control" name="residence_type">
+                        <option value="urban">Urban</option>
+                        <option value="rural">Rural</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Marital Status</label>
+                    <select class="form-control" name="marital_status">
+                        <option value="single">Single</option>
+                        <option value="married">Married</option>
+                        <option value="divorced">Divorced</option>
+                        <option value="widowed">Widowed</option>
+                        <option value="separated">Separated</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Relationship to Household Head</label>
+                    <select class="form-control" name="relationship_to_hh">
+                        <option value="head">Head</option>
+                        <option value="spouse">Spouse</option>
+                        <option value="son_daughter">Son/Daughter</option>
+                        <option value="parent">Parent</option>
+                        <option value="other_relative">Other Relative</option>
+                        <option value="not_related">Not Related</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Region</label>
+                    <select class="form-control" name="region">
+                        <option value="nairobi">Nairobi</option>
+                        <option value="central">Central</option>
+                        <option value="coast">Coast</option>
+                        <option value="eastern">Eastern</option>
+                        <option value="north_eastern">North Eastern</option>
+                        <option value="nyanza">Nyanza</option>
+                        <option value="rift_valley">Rift Valley</option>
+                        <option value="western">Western</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div id="behavioral-section">
+                    <div class="section-header">Behavioral Information</div>
+                    <div class="checkbox-grid">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="mobile_money" id="mobile_money">
+                            <label class="form-check-label" for="mobile_money">
+                                Has Mobile Money Account
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="bank_account" id="bank_account">
+                            <label class="form-check-label" for="bank_account">
+                                Has Bank Account
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="savings_account" id="savings_account">
+                            <label class="form-check-label" for="savings_account">
+                                Has Savings Account
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="loan" id="loan">
+                            <label class="form-check-label" for="loan">
+                                Has Any Loan
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="insurance" id="insurance">
+                            <label class="form-check-label" for="insurance">
+                                Has Any Insurance
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="pension" id="pension">
+                            <label class="form-check-label" for="pension">
+                                Has Pension
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="section-header">Financial Details (Optional)</div>
+                    <div class="checkbox-grid">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="has_debit_card" id="has_debit_card">
+                            <label class="form-check-label" for="has_debit_card">
+                                Has Debit Card
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="has_credit_card" id="has_credit_card">
+                            <label class="form-check-label" for="has_credit_card">
+                                Has Credit Card
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="savings_microfinance"
+                                id="savings_microfinance">
+                            <label class="form-check-label" for="savings_microfinance">
+                                Saves with Microfinance
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="savings_sacco" id="savings_sacco">
+                            <label class="form-check-label" for="savings_sacco">
+                                Saves with SACCO
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="savings_group" id="savings_group">
+                            <label class="form-check-label" for="savings_group">
+                                Saves with Group/Chama
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-predict">
+            <span>Predict Financial Exclusion Status</span>
+            <div class="loading">Loading...</div>
+        </button>
+    </form>
+
+    <div id="prediction-results" style="display: none;">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="prediction-result">
+                    <h4>Prediction Result</h4>
+                    <div id="prediction-value" class="prediction-value"></div>
+                    <div id="probability-value">Probability: <span></span></div>
+                    <div class="probability-gauge">
+                        <canvas id="gauge-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="factors-container">
+                    <h4>Key Factors Influencing Prediction</h4>
+                    <div id="factors-list" class="factors-list"></div>
+                    <div class="explanation">
+                        <strong>Explanation:</strong><br>
+                        The factors above show the features that most influenced this prediction.
+                        <span style="color: #D32F2F;">Red arrows (↑)</span> indicate factors that increase the
+                        likelihood of financial exclusion,
+                        while <span style="color: #388E3C;">green arrows (↓)</span> indicate factors that decrease it.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('prediction-form');
+        const modelChoice = document.getElementById('model-choice');
+        const behavioralSection = document.getElementById('behavioral-section');
+        const predictionResults = document.getElementById('prediction-results');
+        const predictionValue = document.getElementById('prediction-value');
+        const probabilityValue = document.getElementById('probability-value').querySelector('span');
+        const factorsList = document.getElementById('factors-list');
+        let gaugeChart = null;
+
+        // Update age value display
+        const ageInput = document.getElementById('age');
+        const ageValue = document.getElementById('age-value');
+        ageInput.addEventListener('input', function () {
+            ageValue.textContent = this.value;
+        });
+
+        // Show/hide behavioral section based on model selection
+        modelChoice.addEventListener('change', function () {
+            const isDemographicsOnly = this.value.includes('Demographics Only');
+            behavioralSection.style.display = isDemographicsOnly ? 'none' : 'block';
+
+            if (isDemographicsOnly) {
+                const behavioralInputs = behavioralSection.querySelectorAll('input[type="checkbox"]');
+                behavioralInputs.forEach(input => {
+                    input.checked = false;
+                    input.disabled = true;
+                });
+            } else {
+                const behavioralInputs = behavioralSection.querySelectorAll('input[type="checkbox"]');
+                behavioralInputs.forEach(input => {
+                    input.disabled = false;
+                });
+            }
+        });
+
+        // Initialize gauge chart
+        function initGaugeChart(probability) {
+            const ctx = document.getElementById('gauge-chart').getContext('2d');
+            if (gaugeChart) {
+                gaugeChart.destroy();
+            }
+
+            gaugeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [probability * 100, (1 - probability) * 100],
+                        backgroundColor: [
+                            probability > 0.5 ? '#D32F2F' : '#388E3C',
+                            '#e9ecef'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    circumference: 180,
+                    rotation: -90,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    },
+                    animation: {
+                        duration: 1000
+                    }
+                }
+            });
+        }
+
+        // Update prediction result and display
+        function updatePredictionDisplay(data) {
+            const predictionResults = document.getElementById('prediction-results');
+            const predictionValue = document.getElementById('prediction-value');
+            const probabilityValue = document.getElementById('probability-value').querySelector('span');
+            const factorsList = document.getElementById('factors-list');
+
+            // Update prediction text and color
+            predictionValue.textContent = data.prediction;
+            predictionValue.className = 'prediction-value ' +
+                (data.prediction === 'Financially Excluded' ? 'excluded' : 'included');
+
+            // Update probability
+            probabilityValue.textContent = `${data.probability.toFixed(1)}%`;
+
+            // Update gauge chart
+            initGaugeChart(data.probability / 100);  // Convert percentage back to decimal
+
+            // Update factors list
+            if (data.factors && data.factors.length > 0) {
+                factorsList.innerHTML = data.factors.map(factor => `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>${factor.feature}</span>
+                        <span style="color: ${factor.color}">${factor.arrow} ${factor.weight.toFixed(1)}%</span>
+                    </div>
+                `).join('');
+
+                // Add explanation
+                factorsList.innerHTML += `
+                    <div class="alert alert-info mt-3" role="alert">
+                        <p class="mb-0"><strong>Explanation:</strong></p>
+                        <p class="mb-0">The factors above show the features that most influenced this prediction.</p>
+                        <p class="mb-0">Red arrows (↑) indicate factors that increase the likelihood of financial exclusion, while green arrows (↓) indicate factors that decrease it.</p>
+                    </div>
+                `;
+            }
+
+            // Show results section
+            predictionResults.style.display = 'block';
+            predictionResults.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Handle form submission
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            if (!modelChoice.value) {
+                alert('Please select a prediction model');
+                return;
+            }
+
+            const submitButton = form.querySelector('.btn-predict');
+            const loadingSpinner = submitButton.querySelector('.loading');
+            const buttonText = submitButton.querySelector('span');
+
+            // Show loading state
+            buttonText.style.display = 'none';
+            loadingSpinner.style.display = 'block';
+            submitButton.disabled = true;
+
+            try {
+                const formData = new FormData(form);
+                formData.append('model_choice', modelChoice.value);
+
+                // Set default values for unchecked checkboxes
+                const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    if (!formData.has(checkbox.name)) {
+                        formData.append(checkbox.name, 'off');
+                    }
+                });
+
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                const response = await fetch('/predict/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    updatePredictionDisplay(data);
+                } else {
+                    throw new Error(data.error || 'Prediction failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error making prediction: ' + error.message);
+            } finally {
+                // Reset button state
+                buttonText.style.display = 'block';
+                loadingSpinner.style.display = 'none';
+                submitButton.disabled = false;
+            }
+        });
+    });
+
+    // Function to create or update a chart
+    function createOrUpdateChart(chartId, data, type = 'bar', options = {}) {
+        const ctx = document.getElementById(chartId).getContext('2d');
+
+        // Destroy existing chart if it exists
+        if (window.charts && window.charts[chartId]) {
+            window.charts[chartId].destroy();
+        }
+
+        // Initialize charts object if it doesn't exist
+        if (!window.charts) {
+            window.charts = {};
+        }
+
+        // Default options
+        const defaultOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return `${context.label}: ${context.raw}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function (value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        };
+
+        // Merge default options with provided options
+        const chartOptions = { ...defaultOptions, ...options };
+
+        // Create new chart
+        window.charts[chartId] = new Chart(ctx, {
+            type: type,
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.data,
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)',
+                        'rgba(199, 199, 199, 0.6)',
+                        'rgba(83, 102, 255, 0.6)',
+                        'rgba(40, 159, 64, 0.6)',
+                        'rgba(210, 199, 199, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(199, 199, 199, 1)',
+                        'rgba(83, 102, 255, 1)',
+                        'rgba(40, 159, 64, 1)',
+                        'rgba(210, 199, 199, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: chartOptions
+        });
+    }
+
+    // Function to load chart data from API
+    async function loadChartData(endpoint, chartId, type = 'bar', options = {}) {
+        try {
+            const response = await fetch(endpoint);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            if (data.error) {
+                console.error('API Error:', data.error);
+                return;
+            }
+            createOrUpdateChart(chartId, data, type, options);
+        } catch (error) {
+            console.error('Error loading chart data:', error);
+        }
+    }
+
+    // Load all charts when the page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        // Banking Services Chart
+        loadChartData('/banking-services', 'bankingServicesChart', 'bar', {
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Banking Services Usage'
+                }
+            }
+        });
+
+        // Digital Services Chart
+        loadChartData('/digital-services', 'digitalServicesChart', 'bar', {
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Digital Financial Services Usage'
+                }
+            }
+        });
+
+        // Loan Sources Chart
+        loadChartData('/loan-sources', 'loanSourcesChart', 'doughnut', {
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'right'
+                },
+                title: {
+                    display: true,
+                    text: 'Loan Sources Distribution'
+                }
+            }
+        });
+
+        // Insurance Types Chart
+        loadChartData('/insurance-types', 'insuranceTypesChart', 'pie', {
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'right'
+                },
+                title: {
+                    display: true,
+                    text: 'Insurance Types Distribution'
+                }
+            }
+        });
+
+        // Savings Methods Chart
+        loadChartData('/savings-methods', 'savingsMethodsChart', 'bar', {
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Savings Methods Distribution'
+                }
+            }
+        });
+    });
+</script>
+{% endblock javascripts %}

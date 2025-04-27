@@ -1,0 +1,325 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Page User {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+  .profile-container {
+    padding: 20px;
+    background: #fafafa;
+  }
+
+  .card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    margin-bottom: 30px;
+    border: 1px solid #f0f0f0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  .card-header {
+    padding: 25px 30px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #ffffff;
+    border-radius: 12px 12px 0 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 150px;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.04) 100%);
+    clip-path: polygon(100% 0, 0% 100%, 100% 100%);
+  }
+
+  .card-header-primary {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 20px;
+    background: linear-gradient(to bottom, #333333, #666666);
+    border-radius: 2px;
+  }
+
+  .card-category {
+    font-size: 14px;
+    color: #666666;
+    margin: 0;
+  }
+
+  .card-body {
+    padding: 30px;
+  }
+
+  .form-group {
+    margin-bottom: 25px;
+    position: relative;
+  }
+
+  .form-control {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 14px;
+    color: #333333;
+    background-color: #ffffff;
+    transition: all 0.2s ease;
+  }
+
+  .form-control:focus {
+    border-color: #666666;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+  }
+
+  .form-control:disabled {
+    background-color: #fafafa;
+    color: #666666;
+  }
+
+  .bmd-label-floating {
+    color: #666666;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #333333, #666666);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 25px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #ffffff;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #444444, #777777);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .card-profile {
+    text-align: center;
+    padding: 30px;
+  }
+
+  .card-avatar {
+    margin: -50px auto 0;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 4px solid #ffffff;
+    position: relative;
+  }
+
+  .card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card-avatar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+  }
+
+  .card-profile .card-category {
+    color: #666666;
+    font-size: 14px;
+    margin: 15px 0 5px;
+  }
+
+  .card-profile .card-title {
+    color: #1a1a1a;
+    font-size: 18px;
+    margin-bottom: 15px;
+  }
+
+  .card-profile .card-description {
+    color: #666666;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+  }
+
+  .btn-round {
+    border-radius: 50px;
+    padding: 12px 30px;
+  }
+
+  .clearfix {
+    clear: both;
+  }
+
+  @media (max-width: 768px) {
+    .card-body {
+      padding: 20px;
+    }
+
+    .card-avatar {
+      width: 100px;
+      height: 100px;
+      margin-top: -40px;
+    }
+  }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="profile-container">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Edit Profile</h4>
+          <p class="card-category">Complete your profile</p>
+        </div>
+        <div class="card-body">
+          <form>
+            <div class="row">
+              <div class="col-md-5">
+                <div class="form-group">
+                  <label class="bmd-label-floating">UserID (disabled)</label>
+                  <input type="text" class="form-control" disabled value="{{ current_user.id }}">
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label class="bmd-label-floating">Username</label>
+                  <input type="text" class="form-control" value="{{ current_user.username }}">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label class="bmd-label-floating">Email address</label>
+                  <input type="email" class="form-control" value="{{ current_user.email }}">
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label class="bmd-label-floating">First Name</label>
+                  <input type="text" class="form-control">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label class="bmd-label-floating">Last Name</label>
+                  <input type="text" class="form-control">
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group">
+                  <label class="bmd-label-floating">Address</label>
+                  <input type="text" class="form-control">
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label class="bmd-label-floating">City</label>
+                  <input type="text" class="form-control">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label class="bmd-label-floating">Country</label>
+                  <input type="text" class="form-control">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label class="bmd-label-floating">Postal Code</label>
+                  <input type="text" class="form-control">
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group">
+                  <label class="bmd-label-floating">About Me</label>
+                  <textarea class="form-control" rows="5" placeholder="Tell us about yourself..."></textarea>
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary pull-right">Update Profile</button>
+            <div class="clearfix"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card card-profile">
+        <div class="card-avatar">
+          <a href="#pablo">
+            <img class="img" src="/static/assets/img/faces/marc.jpg" alt="Profile Image" />
+          </a>
+        </div>
+        <div class="card-body">
+          <h6 class="card-category">{{ current_user.username }}</h6>
+          <h4 class="card-title">{{ current_user.email }}</h4>
+          <p class="card-description">
+            Don't be scared of the truth because we need to restart the human foundation in truth And I love you like
+            Kanye loves Kanye I love Rick Owens' bed design but the back is...
+          </p>
+          <a href="#pablo" class="btn btn-primary btn-round">Follow</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

@@ -1,0 +1,30 @@
+
+services:
+  appseed-app:
+    container_name: appseed_app
+    restart: always
+    env_file: .env
+    build: .
+    ports:
+      - "8001:8000"  # Add this to expose the port
+    networks:
+      - db_network
+      - web_network
+  nginx:
+    container_name: nginx1
+    restart: always
+    image: "nginx:latest"
+    ports:
+      - "85:80"
+
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    networks:
+      - web_network
+    depends_on: 
+      - appseed-app
+networks:
+  db_network:
+    driver: bridge
+  web_network:
+    driver: bridge

@@ -1,0 +1,1237 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Financial Inclusion Dashboard 2021 {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+  /* Dashboard Container */
+  .dashboard-container {
+    padding: 24px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    min-height: 100vh;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    position: relative;
+  }
+
+  .dashboard-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    z-index: 0;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+  }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .stats-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  .stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .stats-title {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 600;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stats-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 8px 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .stats-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+  }
+
+  .stats-icon i {
+    font-size: 24px;
+    color: #4f46e5;
+  }
+
+  /* Section Styling */
+  .section-wrapper {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 30px;
+    margin-bottom: 30px;
+    position: relative;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .section-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 30px;
+    padding-left: 20px;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .section-title:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 30px;
+    background: linear-gradient(to bottom, #4f46e5, #6366f1);
+    border-radius: 6px;
+  }
+
+  /* Chart Grid */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  /* Chart Cards */
+  .chart-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    height: 100%;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .chart-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .chart-header {
+    margin-bottom: 15px;
+  }
+
+  .chart-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 16px;
+    position: relative;
+  }
+
+  .chart-indicator:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: inherit;
+    opacity: 0.2;
+  }
+
+  .chart-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .chart-subtitle {
+    font-size: 12px;
+    color: #64748b;
+    margin: 4px 0 0;
+  }
+
+  /* Chart Container */
+  .chart-container {
+    height: 250px;
+    position: relative;
+    padding: 10px;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1200px) {
+    .chart-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-container {
+      padding: 16px;
+    }
+
+    .dashboard-container::before {
+      height: 150px;
+    }
+
+    .stats-row {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .section-wrapper {
+      padding: 20px;
+    }
+
+    .chart-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .section-title {
+      font-size: 20px;
+    }
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Animation for stats cards */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .stats-card:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .stats-card:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .stats-card:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  .stats-card:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+
+  .stats-card:nth-child(5) {
+    animation-delay: 0.5s;
+  }
+
+  /* Dashboard Grid */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 30px;
+  }
+
+  /* Dashboard Column */
+  .dashboard-column {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  /* Chart Grid */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1200px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .chart-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-container {
+      padding: 16px;
+    }
+
+    .dashboard-container::before {
+      height: 150px;
+    }
+
+    .stats-row {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .section-wrapper {
+      padding: 20px;
+    }
+
+    .chart-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .section-title {
+      font-size: 20px;
+    }
+  }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <!-- Mobile Banking -->
+    <div class="stats-card">
+      <div class="d-flex align-items-center">
+        <div class="stats-icon purple">
+          <i class="material-icons">savings</i>
+        </div>
+        <div>
+          <p class="stats-title">Mobile Banking Savings</p>
+          <h3 class="stats-value" id="savingsMobileBanking">Loading...</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank Current -->
+    <div class="stats-card">
+      <div class="d-flex align-items-center">
+        <div class="stats-icon purple">
+          <i class="material-icons">account_balance</i>
+        </div>
+        <div>
+          <p class="stats-title">Bank account (Current)</p>
+          <h3 class="stats-value" id="bankCurrent">Loading...</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank Savings -->
+    <div class="stats-card">
+      <div class="d-flex align-items-center">
+        <div class="stats-icon purple">
+          <i class="material-icons">account_balance_wallet</i>
+        </div>
+        <div>
+          <p class="stats-title">Bank account (Savings)</p>
+          <h3 class="stats-value" id="bankSavings">Loading...</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank Everyday -->
+    <div class="stats-card">
+      <div class="d-flex align-items-center">
+        <div class="stats-icon purple">
+          <i class="material-icons">payments</i>
+        </div>
+        <div>
+          <p class="stats-title">Bank account (Everyday)</p>
+          <h3 class="stats-value" id="bankEveryday">Loading...</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Postbank -->
+    <div class="stats-card">
+      <div class="d-flex align-items-center">
+        <div class="stats-icon purple">
+          <i class="material-icons">local_post_office</i>
+        </div>
+        <div>
+          <p class="stats-title">Post bank</p>
+          <h3 class="stats-value" id="postbank">Loading...</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="dashboard-grid">
+    <!-- Left Column -->
+    <div class="dashboard-column">
+      <!-- Demographics Section -->
+      <div class="section-wrapper">
+        <h2 class="section-title">Demographic Overview</h2>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);"></div>
+              <div>
+                <h4 class="chart-title">Age Distribution</h4>
+                <p class="chart-subtitle">Distribution of Age with Histogram and KDE</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="ageDistributionChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);"></div>
+              <div>
+                <h4 class="chart-title">Gender Distribution</h4>
+                <p class="chart-subtitle">Breakdown by gender</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="genderDistributionChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);"></div>
+              <div>
+                <h4 class="chart-title">Education Level</h4>
+                <p class="chart-subtitle">Respondents by education</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="educationLevelChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);"></div>
+              <div>
+                <h4 class="chart-title">Residence Type</h4>
+                <p class="chart-subtitle">Distribution of Residence Types</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="residenceTypeChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Services Section -->
+      <div class="section-wrapper">
+        <h2 class="section-title">Financial Services Overview</h2>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);"></div>
+              <div>
+                <h4 class="chart-title">Banking Services Usage</h4>
+                <p class="chart-subtitle">Distribution of banking services</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="bankingServicesChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);"></div>
+              <div>
+                <h4 class="chart-title">Mobile Money & Digital Services</h4>
+                <p class="chart-subtitle">Digital financial services adoption</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="digitalServicesChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);"></div>
+              <div>
+                <h4 class="chart-title">Loan Sources Distribution</h4>
+                <p class="chart-subtitle">Popular loan sources</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="loanSourcesChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);"></div>
+              <div>
+                <h4 class="chart-title">Credit Types</h4>
+                <p class="chart-subtitle">Types of credit facilities used</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="creditTypesChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="dashboard-column">
+      <!-- Insurance Coverage Section -->
+      <div class="section-wrapper">
+        <h2 class="section-title">Insurance Coverage Analysis</h2>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"></div>
+              <div>
+                <h4 class="chart-title">Insurance Types Distribution</h4>
+                <p class="chart-subtitle">Types of insurance coverage</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="insuranceTypesChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);"></div>
+              <div>
+                <h4 class="chart-title">Health Insurance Coverage</h4>
+                <p class="chart-subtitle">NHIF and other health insurance</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="healthInsuranceChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);"></div>
+              <div>
+                <h4 class="chart-title">Savings Methods</h4>
+                <p class="chart-subtitle">Popular savings channels</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="savingsMethodsChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);"></div>
+              <div>
+                <h4 class="chart-title">Informal vs Formal Savings</h4>
+                <p class="chart-subtitle">Distribution of savings types</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="savingsTypeChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async function () {
+    // Wait for Chart.js to be fully loaded
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Utility function to create chart configuration
+    function createChartConfig(type, data, options = {}) {
+      if (!data || (!data.labels && !data.data)) {
+        console.error('Invalid data format:', data);
+        return null;
+      }
+
+      const defaultOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 750,
+          easing: 'easeOutQuart'
+        },
+        plugins: {
+          legend: {
+            display: type !== 'bar',
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true,
+              font: { size: 12, family: "'Inter', sans-serif" }
+            }
+          },
+          tooltip: {
+            enabled: true,
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            titleColor: '#1e293b',
+            bodyColor: '#475569',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 6,
+            usePointStyle: true,
+            callbacks: {
+              label: function (context) {
+                const value = context.raw || 0;
+                return `${context.label}: ${value}`;
+              }
+            }
+          }
+        }
+      };
+
+      // Special handling for different chart types
+      if (type === 'radar') {
+        defaultOptions.scales = {
+          r: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => value,
+              backdropColor: 'transparent'
+            }
+          }
+        };
+      }
+      else if (type === 'bar') {
+        defaultOptions.scales = {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => value
+            }
+          },
+          x: {
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45
+            }
+          }
+        };
+      }
+      else if (type === 'polarArea') {
+        defaultOptions.scales = {
+          r: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => value,
+              backdropColor: 'transparent'
+            }
+          }
+        };
+      }
+      else if (type === 'doughnut' || type === 'pie') {
+        defaultOptions.cutout = type === 'doughnut' ? '60%' : 0;
+      }
+
+      // Process colors
+      const backgroundColor = data.colors || [
+        'rgba(99, 102, 241, 0.7)',
+        'rgba(129, 140, 248, 0.7)',
+        'rgba(165, 180, 252, 0.7)',
+        'rgba(199, 210, 254, 0.7)',
+        'rgba(224, 231, 255, 0.7)'
+      ];
+
+      const borderColor = data.colors ? data.colors.map(color => {
+        return color.replace('0.7', '1');
+      }) : backgroundColor.map(color => color.replace('0.7', '1'));
+
+      const chartData = {
+        labels: data.labels,
+        datasets: [{
+          data: data.data,
+          backgroundColor: backgroundColor,
+          borderColor: borderColor,
+          borderWidth: 2,
+          hoverOffset: 4,
+          borderRadius: type === 'bar' ? 4 : 0
+        }]
+      };
+
+      return {
+        type,
+        data: chartData,
+        options: { ...defaultOptions, ...options }
+      };
+    }
+
+    // Function to create pension chart configuration
+    function createPensionChartConfig(type, data, options = {}) {
+      if (!data || !data.pension) {
+        console.error('Invalid pension data format:', data);
+        return null;
+      }
+
+      const pensionData = data.pension;
+      const labels = Object.keys(pensionData);
+      const values = labels.map(key => {
+        const typeData = pensionData[key];
+        return typeData.data ? typeData.data[0] : 0;
+      });
+
+      const colors = ['#6366f1', '#4f46e5', '#4338ca'];
+
+      const defaultOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 750,
+          easing: 'easeOutQuart'
+        },
+        plugins: {
+          legend: {
+            display: type !== 'bar',
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true,
+              font: { size: 12, family: "'Inter', sans-serif" }
+            }
+          },
+          tooltip: {
+            enabled: true,
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            titleColor: '#1e293b',
+            bodyColor: '#475569',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 6,
+            usePointStyle: true,
+            callbacks: {
+              label: function (context) {
+                return `${context.label}: ${context.raw}`;
+              }
+            }
+          }
+        },
+        scales: type === 'bar' ? {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => value
+            }
+          },
+          x: {
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45
+            }
+          }
+        } : undefined
+      };
+
+      return {
+        type,
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: colors,
+            borderColor: colors,
+            borderWidth: 2,
+            borderRadius: type === 'bar' ? 4 : 0
+          }]
+        },
+        options: { ...defaultOptions, ...options }
+      };
+    }
+
+    // Function to create exclusion gauge chart configuration
+    function createExclusionGaugeConfig(data) {
+      if (!data || !data.exclusion) {
+        console.error('Invalid exclusion data format:', data);
+        return null;
+      }
+
+      const exclusionData = data.exclusion;
+      const colors = ['#ef4444', '#22c55e'];
+
+      return {
+        type: 'doughnut',
+        data: {
+          labels: exclusionData.labels,
+          datasets: [{
+            data: exclusionData.data,
+            backgroundColor: colors,
+            borderColor: colors,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          circumference: 180,
+          rotation: 270,
+          cutout: '75%',
+          animation: {
+            duration: 750,
+            easing: 'easeOutQuart'
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                usePointStyle: true,
+                font: { size: 12, family: "'Inter', sans-serif" }
+              }
+            },
+            tooltip: {
+              enabled: true,
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              titleColor: '#1e293b',
+              bodyColor: '#475569',
+              borderColor: '#e2e8f0',
+              borderWidth: 1,
+              padding: 12,
+              boxPadding: 6,
+              usePointStyle: true,
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw}`;
+                }
+              }
+            }
+          }
+        }
+      };
+    }
+
+    // Function to load chart data with retry mechanism
+    async function loadChartData(endpoint, chartId, type, customOptions = {}, retries = 3) {
+      try {
+        console.log(`Fetching data from ${endpoint} for ${chartId}`);
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log(`Data received for ${chartId}:`, data);
+
+        const ctx = document.getElementById(chartId)?.getContext('2d');
+        if (!ctx) {
+          console.error(`Canvas element not found: ${chartId}`);
+          return;
+        }
+
+        // Destroy existing chart if it exists
+        const existingChart = Chart.getChart(ctx);
+        if (existingChart) {
+          existingChart.destroy();
+        }
+
+        let chartConfig;
+        if (endpoint.includes('pension-exclusion-stats')) {
+          if (chartId === 'exclusionGaugeChart') {
+            chartConfig = createExclusionGaugeConfig(data);
+          } else {
+            chartConfig = createPensionChartConfig(type, data, customOptions);
+          }
+        } else {
+          chartConfig = createChartConfig(type, data, customOptions);
+        }
+
+        if (chartConfig) {
+          console.log(`Creating chart ${chartId} with config:`, chartConfig);
+          new Chart(ctx, chartConfig);
+        } else {
+          console.error(`Failed to create chart configuration for ${chartId}`);
+        }
+      } catch (error) {
+        console.error(`Error loading chart data for ${chartId}:`, error);
+        if (retries > 0) {
+          console.log(`Retrying... (${retries} attempts left)`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          await loadChartData(endpoint, chartId, type, customOptions, retries - 1);
+        } else {
+          const element = document.getElementById(chartId);
+          if (element) {
+            element.parentElement.innerHTML = `
+              <div class="alert alert-danger">
+                Failed to load chart data. Please try again later.
+              </div>
+            `;
+          }
+        }
+      }
+    }
+
+    // Initialize financial stats with retry mechanism
+    async function updateStats(retries = 3) {
+      try {
+        const response = await fetch('/api/financial-stats1/');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+
+        document.getElementById('savingsMobileBanking').textContent = data.savings_mobile_banking || '0';
+        document.getElementById('bankCurrent').textContent = data.bank_current || '0';
+        document.getElementById('bankSavings').textContent = data.bank_savings || '0';
+        document.getElementById('bankEveryday').textContent = data.bank_everyday || '0';
+        document.getElementById('postbank').textContent = data.postbank || '0';
+      } catch (error) {
+        console.error('Error loading financial stats:', error);
+        if (retries > 0) {
+          console.log(`Retrying stats update... (${retries} attempts left)`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          await updateStats(retries - 1);
+        }
+      }
+    }
+
+    // Chart initializations array
+    const chartInitializations = [
+      // Demographics (keep these unchanged as they're working)
+      {
+        endpoint: '/api/age-distribution1/',
+        chartId: 'ageDistributionChart',
+        type: 'bar',
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: value => value }
+            }
+          }
+        }
+      },
+      {
+        endpoint: '/api/gender-distribution1/',
+        chartId: 'genderDistributionChart',
+        type: 'pie'
+      },
+      {
+        endpoint: '/api/education-distribution1/',
+        chartId: 'educationLevelChart',
+        type: 'bar'
+      },
+      {
+        endpoint: '/api/residence-type-distribution1/',
+        chartId: 'residenceTypeChart',
+        type: 'bar'
+      },
+      // Loan Products
+      {
+        endpoint: '/api/digital-vs-traditional-loans/',
+        chartId: 'digitalLoansChart',
+        type: 'bar',
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function (value) {
+                  return value + '%';
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw.toFixed(1)}%`;
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        endpoint: '/api/informal-lending/',
+        chartId: 'informalLendingChart',
+        type: 'pie',
+        options: {
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw}`;
+                }
+              }
+            }
+          }
+        }
+      },
+      // Insurance Coverage
+      {
+        endpoint: '/api/health-insurance/',
+        chartId: 'healthInsuranceChart',
+        type: 'doughnut',
+        options: {
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw}`;
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        endpoint: '/api/asset-insurance/',
+        chartId: 'assetInsuranceChart',
+        type: 'radar',
+        options: {
+          scales: {
+            r: {
+              beginAtZero: true,
+              ticks: { callback: value => value }
+            }
+          }
+        }
+      },
+      {
+        endpoint: '/api/agri-insurance/',
+        chartId: 'agriInsuranceChart',
+        type: 'bar',
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: value => value }
+            }
+          }
+        }
+      },
+      // Savings Behavior
+      {
+        endpoint: '/api/savings-channels/',
+        chartId: 'savingsChannelsChart',
+        type: 'polarArea',
+        options: {
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw}`;
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        endpoint: '/api/digital-savings/',
+        chartId: 'digitalSavingsChart',
+        type: 'bar',
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: value => value }
+            }
+          }
+        }
+      },
+      // Banking Services
+      {
+        endpoint: '/api/account-types/',
+        chartId: 'accountTypesChart',
+        type: 'pie'
+      },
+      {
+        endpoint: '/api/banking-products/',
+        chartId: 'bankingProductsChart',
+        type: 'bar',
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: value => value + '%' }
+            }
+          }
+        }
+      },
+      // Pension and Financial Exclusion
+      {
+        endpoint: '/api/pension-exclusion-stats1/',
+        chartId: 'pensionChart',
+        type: 'bar'
+      },
+      {
+        endpoint: '/api/pension-exclusion-stats1/',
+        chartId: 'pensionPieChart',
+        type: 'doughnut'
+      },
+      {
+        endpoint: '/api/pension-exclusion-stats1/',
+        chartId: 'exclusionGaugeChart',
+        type: 'doughnut',
+        options: {
+          circumference: 180,
+          rotation: 270,
+          cutout: '75%'
+        }
+      }
+    ];
+
+    // Initialize all visualizations with proper error handling
+    try {
+      await updateStats();
+
+      // Initialize charts sequentially to prevent race conditions
+      for (const chart of chartInitializations) {
+        await loadChartData(chart.endpoint, chart.chartId, chart.type, chart.options);
+        // Add a small delay between chart initializations
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    } catch (error) {
+      console.error('Error during initialization:', error);
+    }
+  });
+
+  async function initializeDigitalVsTraditionalChart() {
+    try {
+      const response = await fetch('/api/digital-vs-traditional-loans/');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      // Clear any existing chart
+      const existingChart = Chart.getChart("digitalVsTraditionalChart");
+      if (existingChart) {
+        existingChart.destroy();
+      }
+
+      const ctx = document.getElementById('digitalVsTraditionalChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            label: 'Number of Loans',
+            data: data.data,
+            backgroundColor: data.colors,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `Count: ${context.raw}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error initializing digital vs traditional loans chart:', error);
+    }
+  }
+
+  // Call the initialization function when the document is ready
+  document.addEventListener('DOMContentLoaded', function () {
+    initializeDigitalVsTraditionalChart();
+  });
+</script>
+
+<!-- Disable Material Dashboard Chartist Initialization -->
+<script>
+  $(document).ready(function () {
+    if (typeof md !== 'undefined' && typeof md.initDashboardPageCharts === 'function') {
+      md.initDashboardPageCharts = function () {
+        console.log('Chartist initialization disabled');
+      };
+    }
+  });
+</script>
+{% endblock javascripts %}

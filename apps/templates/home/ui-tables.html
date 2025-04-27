@@ -1,0 +1,438 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Financial Inclusion Data Tables {% endblock %}
+
+{% block content %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    .dashboard-container {
+        padding: 40px;
+        background: #ffffff;
+    }
+
+    h1 {
+        color: #007bff;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+    }
+
+    .card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        margin-bottom: 30px;
+        border: 1px solid #f0f0f0;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-header {
+        padding: 25px 30px;
+        border-bottom: 1px solid #f0f0f0;
+        background: #ffffff;
+    }
+
+    .card-title {
+        color: #6a1b9a;
+        font-size: 1.8em;
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .card-category {
+        font-size: 1.1em;
+        color: #666;
+        margin: 0;
+    }
+
+    .table {
+        width: 100%;
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 1.1em;
+    }
+
+    .table th {
+        background: #f8f9fa;
+        color: #333;
+        font-weight: 600;
+        padding: 18px 25px;
+        text-transform: uppercase;
+        font-size: 0.9em;
+        letter-spacing: 0.8px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .table td {
+        padding: 18px 25px;
+        color: #333;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+
+    .badge {
+        padding: 8px 14px;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.9em;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .badge-success {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .badge-danger {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+
+    .badge-secondary {
+        background-color: #f5f5f5;
+        color: #616161;
+    }
+
+    /* Debug section styling */
+    .debug-section {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .debug-section h4 {
+        color: #6a1b9a;
+        font-size: 1.8em;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+
+    .debug-section p {
+        font-size: 1.1em;
+        color: #666;
+        margin: 8px 0;
+    }
+
+    /* Status indicators */
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-dot.included {
+        background-color: #2e7d32;
+    }
+
+    .status-dot.excluded {
+        background-color: #c62828;
+    }
+
+    .status-dot.unknown {
+        background-color: #616161;
+    }
+
+    /* Table row hover effect */
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* Table row zebra striping */
+    .table tbody tr:nth-child(even) {
+        background-color: #fafafa;
+    }
+
+    /* Custom scrollbar */
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #007bff;
+        border-radius: 4px;
+        opacity: 0.8;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #0056b3;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        font-style: italic;
+        font-size: 1.1em;
+    }
+
+    /* Respondent ID styling */
+    .table td strong {
+        color: #007bff;
+        font-weight: 600;
+    }
+
+    .table td strong::before {
+        content: '#';
+        color: #666;
+        font-weight: normal;
+    }
+</style>
+
+<div class="dashboard-container">
+    <h1>Financial Inclusion Data Tables</h1>
+
+    <!-- Debug Section -->
+    <div class="debug-section">
+        <h4>A Brief Overview of the Dataset</h4>
+        <p id="debug2016">Loading 2016 data status...</p>
+        <p id="debug2021">Loading 2021 data status...</p>
+    </div>
+
+    <!-- 2016 Data Table -->
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h4 class="card-title">Survey Data 2016</h4>
+            <p class="card-category">Financial inclusion data from 2016 survey (First 10 Records)</p>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table" id="table2016">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Education</th>
+                            <th>Residence</th>
+                            <th>Mobile Money</th>
+                            <th>Bank Account</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table2016Body">
+                        <tr>
+                            <td colspan="8" class="no-data">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2021 Data Table -->
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h4 class="card-title">Survey Data 2021</h4>
+            <p class="card-category">Financial inclusion data from 2021 survey (First 10 Records)</p>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table" id="table2021">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Education</th>
+                            <th>Residence</th>
+                            <th>Mobile Money</th>
+                            <th>Bank Account</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table2021Body">
+                        <tr>
+                            <td colspan="8" class="no-data">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Function to load table data
+        async function loadTableData() {
+            try {
+                // Load 2016 data
+                const response2016 = await fetch("/api/survey-data-2016/");
+                if (!response2016.ok) throw new Error(`HTTP error! status: ${response2016.status}`);
+                const data2016 = await response2016.json();
+
+                // Update debug info
+                document.getElementById('debug2016').textContent =
+                    `2016 Data: ${data2016.length} records loaded`;
+
+                // Populate 2016 table
+                const table2016Body = document.getElementById('table2016Body');
+                table2016Body.innerHTML = '';
+
+                if (data2016.length > 0) {
+                    data2016.forEach(data => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><strong>${data.respondent_id}</strong></td>
+                            <td>${data.age || '-'}</td>
+                            <td>${data.gender || '-'}</td>
+                            <td>${data.education_level || '-'}</td>
+                            <td>${data.residence_type || '-'}</td>
+                            <td>
+                                ${data.mobile_money_registered === 'Yes' ?
+                                '<span class="badge badge-success">Yes</span>' :
+                                '<span class="badge badge-secondary">No</span>'}
+                            </td>
+                            <td>
+                                ${data.bank_account_current === 'Yes' ?
+                                '<span class="badge badge-success">Yes</span>' :
+                                '<span class="badge badge-secondary">No</span>'}
+                            </td>
+                            <td>
+                                <div class="status-indicator">
+                                    ${data.financially_excluded === "Yes" ?
+                                '<span class="status-dot excluded"></span><span class="badge badge-danger">Excluded</span>' :
+                                data.financially_excluded === "No" ?
+                                    '<span class="status-dot included"></span><span class="badge badge-success">Included</span>' :
+                                    '<span class="status-dot unknown"></span><span class="badge badge-secondary">Unknown</span>'}
+                                </div>
+                            </td>
+                        `;
+                        table2016Body.appendChild(row);
+                    });
+                } else {
+                    table2016Body.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="no-data">No 2016 survey data available</td>
+                        </tr>
+                    `;
+                }
+
+                // Load 2021 data
+                const response2021 = await fetch("/api/survey-data-2021/");
+                if (!response2021.ok) throw new Error(`HTTP error! status: ${response2021.status}`);
+                const data2021 = await response2021.json();
+
+                // Update debug info
+                document.getElementById('debug2021').textContent =
+                    `2021 Data: ${data2021.length} records loaded`;
+
+                // Populate 2021 table
+                const table2021Body = document.getElementById('table2021Body');
+                table2021Body.innerHTML = '';
+
+                if (data2021.length > 0) {
+                    data2021.forEach(data => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><strong>${data.respondent_id}</strong></td>
+                            <td>${data.age || '-'}</td>
+                            <td>${data.gender || '-'}</td>
+                            <td>${data.education_level || '-'}</td>
+                            <td>${data.residence_type || '-'}</td>
+                            <td>
+                                ${data.mobile_money_registered === 'Yes' ?
+                                '<span class="badge badge-success">Yes</span>' :
+                                '<span class="badge badge-secondary">No</span>'}
+                            </td>
+                            <td>
+                                ${data.bank_account_current === 'Yes' ?
+                                '<span class="badge badge-success">Yes</span>' :
+                                '<span class="badge badge-secondary">No</span>'}
+                            </td>
+                            <td>
+                                <div class="status-indicator">
+                                    ${data.financially_excluded === "Yes" ?
+                                '<span class="status-dot excluded"></span><span class="badge badge-danger">Excluded</span>' :
+                                data.financially_excluded === "No" ?
+                                    '<span class="status-dot included"></span><span class="badge badge-success">Included</span>' :
+                                    '<span class="status-dot unknown"></span><span class="badge badge-secondary">Unknown</span>'}
+                                </div>
+                            </td>
+                        `;
+                        table2021Body.appendChild(row);
+                    });
+                } else {
+                    table2021Body.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="no-data">No 2021 survey data available</td>
+                        </tr>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Error loading table data:', error);
+                document.getElementById('table2016Body').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="no-data">Error loading data</td>
+                    </tr>
+                `;
+                document.getElementById('table2021Body').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="no-data">Error loading data</td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Initialize table data loading
+        loadTableData();
+
+        // Make tables horizontally scrollable
+        const tables = document.querySelectorAll('.table-responsive');
+        tables.forEach(table => {
+            if (table.scrollWidth > table.clientWidth) {
+                table.style.overflowX = 'auto';
+            }
+        });
+    });
+</script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Make tables horizontally scrollable
+        const tables = document.querySelectorAll('.table-responsive');
+        tables.forEach(table => {
+            if (table.scrollWidth > table.clientWidth) {
+                table.style.overflowX = 'auto';
+            }
+        });
+    });
+</script>
+{% endblock %}
