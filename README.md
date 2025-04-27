@@ -244,14 +244,3 @@ If you have questions or need help integrating the product please [contact us](h
 
 <br />
 
-## Social Media
-
-- Twitter: <https://twitter.com/CreativeTim>
-- Facebook: <https://www.facebook.com/CreativeTim>
-- Dribbble: <https://dribbble.com/creativetim>
-- Instagram: <https://www.instagram.com/CreativeTimOfficial>
-
-<br />
-
----
-[Material Dashboard Django](https://www.creative-tim.com/product/material-dashboard-django) - Provided by [Creative Tim](https://www.creative-tim.com/) and [AppSeed](https://appseed.us)
