@@ -9,4 +9,3 @@ services:
         value: core.settings
       - key: SECRET_KEY
         sync: false
-    staticPublishPath: staticfiles
