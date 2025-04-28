@@ -502,7 +502,6 @@
         <h4>Model Scenario</h4>
         <div class="option-selector">
           <div class="option-btn active" data-scenario="no-weights">No Weights</div>
-          <div class="option-btn" data-scenario="weighted">Weighted</div>
           <div class="option-btn" data-scenario="smote">SMOTE</div>
         </div>
       </div>
@@ -521,7 +520,7 @@
           <div class="option-btn active" data-metric="f1">F1 Score</div>
           <div class="option-btn" data-metric="roc">ROC AUC</div>
           <div class="option-btn" data-metric="precision">Precision</div>
-          <div class="option-btn" data-metric="accuracy">Accuracy</div>
+          <div class="option-btn" data-metric="recall">Recall</div>
         </div>
       </div>
     </div>
@@ -557,8 +556,8 @@
           <div class="metric-value" id="best-precision">0.4000</div>
         </div>
         <div class="metric-card">
-          <div class="metric-label">Accuracy</div>
-          <div class="metric-value" id="best-accuracy">0.9141</div>
+          <div class="metric-label">Recall</div>
+          <div class="metric-value" id="best-recall">0.9141</div>
         </div>
       </div>
     </div>
@@ -594,7 +593,7 @@
             f1: 0.0222,
             roc: 0.8371,
             precision: 0.4000,
-            accuracy: 0.9141,
+            recall: 0.9141,
             isBest: true
           },
           {
@@ -602,7 +601,7 @@
             f1: 0.0057,
             roc: 0.7837,
             precision: 1.0000,
-            accuracy: 0.9148,
+            recall: 0.9148,
             isBest: false
           },
           {
@@ -610,7 +609,7 @@
             f1: 0.0000,
             roc: 0.8025,
             precision: 0.0000,
-            accuracy: 0.9146,
+            recall: 0.9146,
             isBest: false
           },
           {
@@ -618,7 +617,7 @@
             f1: 0.0000,
             roc: 0.8419,
             precision: 0.0000,
-            accuracy: 0.9146,
+            recall: 0.9146,
             isBest: false
           }
         ],
@@ -628,7 +627,7 @@
             f1: 0.7084,
             roc: 0.9779,
             precision: 0.5485,
-            accuracy: 0.9297,
+            recall: 0.9297,
             isBest: true
           },
           {
@@ -636,7 +635,7 @@
             f1: 0.6273,
             roc: 0.9445,
             precision: 0.4570,
-            accuracy: 0.8985,
+            recall: 0.8985,
             isBest: false
           },
           {
@@ -644,7 +643,7 @@
             f1: 0.0000,
             roc: 0.9687,
             precision: 0.0000,
-            accuracy: 0.9146,
+            recall: 0.9146,
             isBest: false
           },
           {
@@ -652,77 +651,7 @@
             f1: 0.6524,
             roc: 0.9713,
             precision: 0.4841,
-            accuracy: 0.9090,
-            isBest: false
-          }
-        ]
-      },
-      'weighted': {
-        'demo': [
-          {
-            model: 'Logistic Regression',
-            f1: 0.0325,
-            roc: 0.8521,
-            precision: 0.4200,
-            accuracy: 0.9162,
-            isBest: true
-          },
-          {
-            model: 'Decision Tree',
-            f1: 0.0123,
-            roc: 0.8012,
-            precision: 0.5000,
-            accuracy: 0.9150,
-            isBest: false
-          },
-          {
-            model: 'Random Forest',
-            f1: 0.0000,
-            roc: 0.8210,
-            precision: 0.0000,
-            accuracy: 0.9155,
-            isBest: false
-          },
-          {
-            model: 'Gradient Boosting',
-            f1: 0.0000,
-            roc: 0.8510,
-            precision: 0.0000,
-            accuracy: 0.9152,
-            isBest: false
-          }
-        ],
-        'both': [
-          {
-            model: 'Logistic Regression',
-            f1: 0.7128,
-            roc: 0.9785,
-            precision: 0.5521,
-            accuracy: 0.9301,
-            isBest: true
-          },
-          {
-            model: 'Decision Tree',
-            f1: 0.6350,
-            roc: 0.9502,
-            precision: 0.4650,
-            accuracy: 0.9001,
-            isBest: false
-          },
-          {
-            model: 'Random Forest',
-            f1: 0.0000,
-            roc: 0.9701,
-            precision: 0.0000,
-            accuracy: 0.9150,
-            isBest: false
-          },
-          {
-            model: 'Gradient Boosting',
-            f1: 0.6600,
-            roc: 0.9720,
-            precision: 0.4900,
-            accuracy: 0.9100,
+            recall: 0.9090,
             isBest: false
           }
         ]
@@ -734,7 +663,7 @@
             f1: 0.3200,
             roc: 0.8624,
             precision: 0.4800,
-            accuracy: 0.9180,
+            recall: 0.9180,
             isBest: true
           },
           {
@@ -742,7 +671,7 @@
             f1: 0.2800,
             roc: 0.8500,
             precision: 0.4500,
-            accuracy: 0.9170,
+            recall: 0.9170,
             isBest: false
           },
           {
@@ -750,7 +679,7 @@
             f1: 0.2500,
             roc: 0.8100,
             precision: 0.4000,
-            accuracy: 0.9160,
+            recall: 0.9160,
             isBest: false
           },
           {
@@ -758,7 +687,7 @@
             f1: 0.3000,
             roc: 0.8400,
             precision: 0.4700,
-            accuracy: 0.9175,
+            recall: 0.9175,
             isBest: false
           }
         ],
@@ -768,7 +697,7 @@
             f1: 0.7202,
             roc: 0.9621,
             precision: 0.5200,
-            accuracy: 0.9250,
+            recall: 0.9250,
             isBest: true
           },
           {
@@ -776,7 +705,7 @@
             f1: 0.7100,
             roc: 0.9750,
             precision: 0.5400,
-            accuracy: 0.9280,
+            recall: 0.9280,
             isBest: false
           },
           {
@@ -784,7 +713,7 @@
             f1: 0.7000,
             roc: 0.9700,
             precision: 0.5100,
-            accuracy: 0.9200,
+            recall: 0.9200,
             isBest: false
           },
           {
@@ -792,7 +721,7 @@
             f1: 0.6800,
             roc: 0.9650,
             precision: 0.5000,
-            accuracy: 0.9220,
+            recall: 0.9220,
             isBest: false
           }
         ]
@@ -942,7 +871,7 @@
         datasets: [{
           label: metric === 'f1' ? 'F1 Score' :
             metric === 'roc' ? 'ROC AUC' :
-              metric === 'precision' ? 'Precision' : 'Accuracy',
+              metric === 'precision' ? 'Precision' : 'Recall',
           data: metricValues,
           backgroundColor: backgroundColors,
           borderWidth: 0,
@@ -964,8 +893,7 @@
       const subtitle = document.getElementById('chart-main-subtitle');
       subtitle.style.opacity = '0';
       setTimeout(() => {
-        subtitle.textContent = `${scenario === 'no-weights' ? 'No Weights' :
-          scenario === 'weighted' ? 'Weighted' : 'SMOTE'} | 
+        subtitle.textContent = `${scenario === 'no-weights' ? 'No Weights' : 'SMOTE'} | 
                                ${features === 'demo' ? 'Demographics Only' : 'Demographics + Behavior'}`;
         subtitle.style.opacity = '1';
       }, 300);
@@ -1000,7 +928,7 @@
         document.getElementById('best-f1').textContent = bestModel.f1.toFixed(4);
         document.getElementById('best-roc').textContent = bestModel.roc.toFixed(4);
         document.getElementById('best-precision').textContent = bestModel.precision.toFixed(4);
-        document.getElementById('best-accuracy').textContent = bestModel.accuracy.toFixed(4);
+        document.getElementById('best-recall').textContent = bestModel.recall.toFixed(4);
       }
     }
 
