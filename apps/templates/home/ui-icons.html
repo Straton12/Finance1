@@ -1,40 +1,346 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} UI Icons {% endblock %} 
+{% block title %} Financial Exclusion Prediction {% endblock %}
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  .prediction-result {
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .prediction-text {
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .prediction-probability {
+    font-size: 18px;
+  }
+
+  .factor-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    background-color: #f8f8f8;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .factor-name {
+    flex: 4;
+  }
+
+  .factor-impact {
+    flex: 1;
+    text-align: right;
+  }
+
+  .section-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 20px 0;
+    color: #344767;
+  }
+
+  .highlight {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+  }
+
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .form-check-input {
+    position: relative;
+    margin-left: 0;
+  }
+
+  .form-check-label {
+    margin-left: 1.5rem;
+  }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header pb-0">
+          <h6>Interactive Financial Exclusion Prediction</h6>
+        </div>
+        <div class="card-body">
+          <p class="text-sm">
+            This section allows you to input demographic and behavioral information to predict
+            whether someone is likely to be financially excluded. You can try different scenarios
+            to see how various factors influence the prediction.
+          </p>
 
-        <div class="container-fluid">
-            <div class="card card-plain">
-              <div class="card-header card-header-primary">
-                <h4 class="card-title">Material Design Icons</h4>
-                <p class="card-category">Handcrafted by our friends from
-                  <a target="_blank" href="https://design.google.com/icons/">Google</a>
-                </p>
+          <form id="predictionForm" method="POST" action="{% url 'predict' %}">
+            {% csrf_token %}
+
+            <!-- Model Selection -->
+            <div class="form-group">
+              <label for="model_choice">Choose prediction model:</label>
+              <select class="form-control" id="model_choice" name="model_choice">
+                <option value="Decision Tree (Demographics + Behavior, SMOTE)">Decision Tree (Demographics + Behavior,
+                  SMOTE)</option>
+                <option value="Logistic Regression (Demographics + Behavior, Weighted)">Logistic Regression
+                  (Demographics + Behavior, Weighted)</option>
+                <option value="Gradient Boosting (Demographics Only, SMOTE)">Gradient Boosting (Demographics Only,
+                  SMOTE)</option>
+              </select>
+            </div>
+
+            <div class="row">
+              <!-- Demographic Information -->
+              <div class="col-md-6">
+                <h6 class="section-header">Demographic Information</h6>
+
+                <div class="form-group">
+                  <label for="age">Age</label>
+                  <input type="number" class="form-control" id="age" name="age" min="18" max="100" value="35">
+                </div>
+
+                <div class="form-group">
+                  <label for="gender">Gender</label>
+                  <select class="form-control" id="gender" name="gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="education_level">Education Level</label>
+                  <select class="form-control" id="education_level" name="education_level">
+                    <option value="no_formal_education">No Formal Education</option>
+                    <option value="primary">Primary</option>
+                    <option value="secondary">Secondary</option>
+                    <option value="university">University</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="residence_type">Residence Type</label>
+                  <select class="form-control" id="residence_type" name="residence_type">
+                    <option value="urban">Urban</option>
+                    <option value="rural">Rural</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="marital_status">Marital Status</label>
+                  <select class="form-control" id="marital_status" name="marital_status">
+                    <option value="single">Single</option>
+                    <option value="married">Married</option>
+                    <option value="divorced">Divorced</option>
+                    <option value="widowed">Widowed</option>
+                    <option value="separated">Separated</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="relationship_to_hh">Relationship to Household Head</label>
+                  <select class="form-control" id="relationship_to_hh" name="relationship_to_hh">
+                    <option value="head">Head</option>
+                    <option value="spouse">Spouse</option>
+                    <option value="son_daughter">Son/Daughter</option>
+                    <option value="parent">Parent</option>
+                    <option value="other_relative">Other Relative</option>
+                    <option value="not_related">Not Related</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="region">Region</label>
+                  <select class="form-control" id="region" name="region">
+                    <option value="nairobi">Nairobi</option>
+                    <option value="central">Central</option>
+                    <option value="coast">Coast</option>
+                    <option value="eastern">Eastern</option>
+                    <option value="north_eastern">North Eastern</option>
+                    <option value="nyanza">Nyanza</option>
+                    <option value="rift_valley">Rift Valley</option>
+                    <option value="western">Western</option>
+                  </select>
+                </div>
               </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="card-body">
-                    <div class="iframe-container d-none d-lg-block">
-                      <iframe src="https://design.google.com/icons/">
-                        <p>Your browser does not support iframes.</p>
-                      </iframe>
-                    </div>
-                    <div class="col-md-12 d-none d-sm-block d-md-block d-lg-none d-block d-sm-none text-center ml-auto mr-auto">
-                      <h5>The icons are visible on Desktop mode inside an iframe. Since the iframe is not working on Mobile and Tablets please visit the icons on their original page on Google. Check the
-                        <a href="https://design.google.com/icons/" target="_blank">Material Icons</a>
-                      </h5>
-                    </div>
-                  </div>
+
+              <!-- Behavioral Information -->
+              <div class="col-md-6">
+                <h6 class="section-header">Behavioral Information</h6>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="mobile_money" name="mobile_money">
+                  <label class="form-check-label" for="mobile_money">Has Mobile Money Account</label>
+                </div>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="bank_account" name="bank_account">
+                  <label class="form-check-label" for="bank_account">Has Bank Account</label>
+                </div>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="savings_account" name="savings_account">
+                  <label class="form-check-label" for="savings_account">Has Savings Account</label>
+                </div>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="loan" name="loan">
+                  <label class="form-check-label" for="loan">Has Any Loan</label>
+                </div>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="insurance" name="insurance">
+                  <label class="form-check-label" for="insurance">Has Any Insurance</label>
+                </div>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="pension" name="pension">
+                  <label class="form-check-label" for="pension">Has Pension</label>
+                </div>
+
+                <h6 class="section-header">Additional Financial Details</h6>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="has_debit_card" name="has_debit_card">
+                  <label class="form-check-label" for="has_debit_card">Has Debit Card</label>
+                </div>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="has_credit_card" name="has_credit_card">
+                  <label class="form-check-label" for="has_credit_card">Has Credit Card</label>
+                </div>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="savings_microfinance" name="savings_microfinance">
+                  <label class="form-check-label" for="savings_microfinance">Saves with Microfinance</label>
+                </div>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="savings_sacco" name="savings_sacco">
+                  <label class="form-check-label" for="savings_sacco">Saves with SACCO</label>
+                </div>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="savings_group" name="savings_group">
+                  <label class="form-check-label" for="savings_group">Saves with Group/Chama</label>
                 </div>
               </div>
             </div>
-        </div>
 
+            <div class="text-center mt-4">
+              <button type="submit" class="btn btn-primary">Predict Financial Exclusion Status</button>
+            </div>
+          </form>
+
+          <!-- Loading indicator -->
+          <div class="loading">
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
+            <p class="mt-2">Making prediction...</p>
+          </div>
+
+          <!-- Results container -->
+          <div id="predictionResults" class="mt-4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  $(document).ready(function () {
+    $('#predictionForm').on('submit', function (e) {
+      e.preventDefault();
+
+      // Show loading indicator
+      $('.loading').show();
+      $('#predictionResults').hide();
+
+      $.ajax({
+        url: $(this).attr('action'),
+        type: 'POST',
+        data: $(this).serialize(),
+        headers: {
+          'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()
+        },
+        success: function (response) {
+          // Hide loading indicator
+          $('.loading').hide();
+
+          if (response.status === 'success') {
+            // Format probability as percentage
+            const probability = (response.probability * 100).toFixed(2) + '%';
+
+            // Create prediction result HTML
+            var resultHtml = `
+                        <div class="prediction-result">
+                            <div class="prediction-text" style="color: ${response.prediction === 'Financially Excluded' ? '#D32F2F' : '#388E3C'}">
+                                ${response.prediction}
+                            </div>
+                            <div class="prediction-probability">
+                                Probability: ${probability}
+                            </div>
+                        </div>
+                        <div class="key-factors">
+                            <h6 class="section-header">Key Factors Influencing Prediction</h6>
+                            ${response.factors.map(factor => `
+                                <div class="factor-item">
+                                    <div class="factor-name">
+                                        <strong>${factor.feature}</strong>
+                                    </div>
+                                    <div class="factor-impact" style="color: ${factor.direction === 'positive' ? '#D32F2F' : '#388E3C'}">
+                                        ${factor.direction === 'positive' ? '↑' : '↓'} ${Math.abs(factor.impact).toFixed(2)}%
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <div class="highlight">
+                                <b>Explanation:</b><br>
+                                The factors above show the features that most influenced this prediction.
+                                <span style="color: #D32F2F;">Red arrows (↑)</span> indicate factors that increase the likelihood of financial exclusion,
+                                while <span style="color: #388E3C;">green arrows (↓)</span> indicate factors that decrease it.
+                            </div>
+                        </div>
+                    `;
+
+            // Show the results
+            $('#predictionResults').html(resultHtml).show();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Prediction Error',
+              text: response.error || 'An error occurred while making the prediction.'
+            });
+          }
+        },
+        error: function (xhr, status, error) {
+          // Hide loading indicator
+          $('.loading').hide();
+
+          Swal.fire({
+            icon: 'error',
+            title: 'Server Error',
+            text: 'An error occurred while processing your request. Please try again.'
+          });
+        }
+      });
+    });
+  });
+</script>
+{% endblock javascripts %}

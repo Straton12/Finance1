@@ -2,20 +2,19 @@ from django.core.management.base import BaseCommand
 from apps.home.models import SurveyData2016
 
 class Command(BaseCommand):
-    help = 'Check data in SurveyData2016 table'
+    help = 'Check data values in SurveyData2016'
 
     def handle(self, *args, **kwargs):
-        total_records = SurveyData2016.objects.count()
-        self.stdout.write(f'Total records in SurveyData2016: {total_records}')
-        
-        if total_records > 0:
-            # Sample some data
-            sample = SurveyData2016.objects.all()[:5]
-            self.stdout.write('\nSample records:')
-            for record in sample:
-                self.stdout.write(f'ID: {record.id}')
-                self.stdout.write(f'Age: {record.age}')
-                self.stdout.write(f'Gender: {record.gender}')
-                self.stdout.write(f'Education: {record.education_level}')
-                self.stdout.write(f'Residence: {record.residence_type}')
-                self.stdout.write('---') 
+        # Check savings_mobile_banking values
+        savings_values = SurveyData2016.objects.values_list('savings_mobile_banking', flat=True).distinct()
+        self.stdout.write('Unique values for savings_mobile_banking:')
+        for value in savings_values:
+            self.stdout.write(f'- {value}')
+            self.stdout.write(f'  Count: {SurveyData2016.objects.filter(savings_mobile_banking=value).count()}')
+
+        # Check loan_bank values
+        loan_values = SurveyData2016.objects.values_list('loan_bank', flat=True).distinct()
+        self.stdout.write('\nUnique values for loan_bank:')
+        for value in loan_values:
+            self.stdout.write(f'- {value}')
+            self.stdout.write(f'  Count: {SurveyData2016.objects.filter(loan_bank=value).count()}') 

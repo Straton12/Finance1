@@ -225,12 +225,11 @@
         <label class="form-label">Choose prediction model:</label>
         <select id="model-choice" class="form-control">
             <option value="">Select a model...</option>
-            <option value="Decision Tree (Demographics + Behavior, SMOTE)">Decision Tree (Demographics + Behavior,
+            <option value="Logistic Regression (Demographics + Behavior, Weighted)">Decision Tree (Demographics + Behavior,
                 SMOTE)</option>
-            <option value="Logistic Regression (Demographics + Behavior, Weighted)">Logistic Regression (Demographics +
-                Behavior, Weighted)</option>
-            <option value="Gradient Boosting (Demographics Only, SMOTE)">Votting ensamble (logistic, Random forest, Gradient Boosting)
-            </option>
+            <option value="Decision Tree (Demographics + Behavior, SMOTE)">Voting Ensemble (Demographics +
+                Behavior)</option>
+            <option value="Gradient Boosting (Demographics Only, SMOTE)">Voting Ensemble (Demographics Only)</option>
         </select>
     </div>
 
@@ -520,18 +519,20 @@
             predictionValue.className = 'prediction-value ' +
                 (data.prediction === 'Financially Excluded' ? 'excluded' : 'included');
 
-            // Update probability
-            probabilityValue.textContent = `${data.probability.toFixed(1)}%`;
+            // Update probability (backend now returns float 0-1)
+            probabilityValue.textContent = `${(data.probability * 100).toFixed(1)}%`;
 
-            // Update gauge chart
-            initGaugeChart(data.probability / 100);  // Convert percentage back to decimal
+            // Update gauge chart (use as-is, do not divide by 100)
+            initGaugeChart(data.probability);
 
             // Update factors list
             if (data.factors && data.factors.length > 0) {
                 factorsList.innerHTML = data.factors.map(factor => `
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span>${factor.feature}</span>
-                        <span style="color: ${factor.color}">${factor.arrow} ${factor.weight.toFixed(1)}%</span>
+                        <span style="color: ${factor.direction === 'positive' ? '#D32F2F' : '#388E3C'}">
+                            ${factor.direction === 'positive' ? '↑' : '↓'} ${(factor.impact * 100).toFixed(2)}%
+                        </span>
                     </div>
                 `).join('');
 

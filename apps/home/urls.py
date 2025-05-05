@@ -34,7 +34,6 @@ urlpatterns = [
     path('predict/', views.predict_view, name='predict'),
     path('api/financial-stats/', views.financial_stats, name='financial_stats'),
     
-    
     path('api/financial-stats1/', views.financial_stats1, name='financial_stats1'),
     path('', include(router.urls)),
     path('api/residence-type-distribution/', residence_type_distribution,
@@ -56,19 +55,13 @@ urlpatterns = [
     path('api/digital-services/', views.digital_services_api, name='digital_services_api'),
     path('api/loan-sources/', views.loan_sources_api, name='loan_sources_api'),
     path('api/insurance-types/', views.insurance_types_api, name='insurance_types_api'),
+    path('api/health-insurance-coverage/', views.health_insurance_coverage_api, name='health_insurance_coverage_api'),
     path('api/savings-methods/', views.savings_methods_api, name='savings_methods_api'),
     path('api/credit-types/', views.credit_types_api, name='credit_types_api'),
     
     # 2021 Dataset API Endpoints
     path('api/digital-vs-traditional-loans/', views.digital_vs_traditional_loans_api, name='digital_vs_traditional_loans_api'),
     path('api/informal-lending/', views.informal_lending_api, name='informal_lending_api'),
-    path('api/health-insurance/', views.health_insurance_api, name='health_insurance_api'),
-    path('api/asset-insurance/', views.asset_insurance_api, name='asset_insurance_api'),
-    path('api/agri-insurance/', views.agri_insurance_api, name='agri_insurance_api'),
-    path('api/savings-channels/', views.savings_channels_api, name='savings_channels_api'),
-    path('api/digital-savings/', views.digital_savings_api, name='digital_savings_api'),
-    path('api/account-types/', views.account_types_api, name='account_types_api'),
-    path('api/banking-products/', views.banking_products_api, name='banking_products_api'),
     
     # This should be the last pattern as it's a catch-all
     re_path(r'^.*\.*', views.pages, name='pages'),

@@ -435,7 +435,7 @@
   <div class="section-wrapper">
     <h2 class="section-title">Retirement and Financial Exclusion</h2>
     <div class="row">
-      <div class="col-md-4">
+      <div class="col-md-6">
         <div class="chart-card">
           <div class="chart-header">
             <div class="chart-indicator" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);"></div>
@@ -445,27 +445,12 @@
             </div>
           </div>
           <div class="chart-container" style="height: 250px;">
-            <canvas id="pensionChart"></canvas>
+            <canvas id="pensionChart2016"></canvas>
           </div>
         </div>
       </div>
 
-      <div class="col-md-4">
-        <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-indicator" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%);"></div>
-            <div>
-              <h4 class="chart-title">Pension Types</h4>
-              <p class="chart-subtitle">Distribution of pension types</p>
-            </div>
-          </div>
-          <div class="chart-container" style="height: 250px;">
-            <canvas id="pensionPieChart"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
+      <div class="col-md-6">
         <div class="chart-card">
           <div class="chart-header">
             <div class="chart-indicator" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);"></div>
@@ -475,7 +460,7 @@
             </div>
           </div>
           <div class="chart-container" style="height: 250px;">
-            <canvas id="exclusionGaugeChart"></canvas>
+            <canvas id="exclusionChart2016"></canvas>
           </div>
         </div>
       </div>
@@ -553,7 +538,7 @@
           </div>
         </div>
         <div class="chart-container">
-          <canvas id="insuranceTypesChart"></canvas>
+          <canvas id="insuranceTypesChart2016"></canvas>
         </div>
       </div>
 
@@ -575,42 +560,79 @@
   <!-- Savings Behavior Section -->
   <div class="section-wrapper">
     <h2 class="section-title">Savings Behavior Analysis</h2>
-    <div class="chart-grid">
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-indicator" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);"></div>
-          <div>
-            <h4 class="chart-title">Savings Methods</h4>
-            <p class="chart-subtitle">Popular savings channels</p>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-indicator" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);"></div>
+            <div>
+              <h4 class="chart-title">Savings Methods</h4>
+              <p class="chart-subtitle">Popular savings channels</p>
+            </div>
           </div>
-        </div>
-        <div class="chart-container">
-          <canvas id="savingsMethodsChart"></canvas>
+          <div class="chart-container" style="height: 250px;">
+            <canvas id="savingsMethodsChart2016"></canvas>
+          </div>
         </div>
       </div>
 
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-indicator" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);"></div>
-          <div>
-            <h4 class="chart-title">Informal vs Formal Savings</h4>
-            <p class="chart-subtitle">Distribution of savings types</p>
+      <div class="col-md-6">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-indicator" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);"></div>
+            <div>
+              <h4 class="chart-title">Informal vs Formal Savings</h4>
+              <p class="chart-subtitle">Distribution of savings types</p>
+            </div>
           </div>
-        </div>
-        <div class="chart-container">
-          <canvas id="savingsTypeChart"></canvas>
+          <div class="chart-container" style="height: 250px;">
+            <canvas id="savingsTypeChart2016"></canvas>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<h2 class="section-title">Financial Inclusion:</h2>
+  
 
 {% endblock %}
 
 {% block javascripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Core Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Popper.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+
+<!-- Perfect Scrollbar -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/perfect-scrollbar/1.5.5/perfect-scrollbar.min.js"></script>
+
+<!-- Bootstrap Material Design -->
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/4.1.3/js/bootstrap-material-design.min.js"></script>
+
+<!-- Material Dashboard Core -->
+<script>
+  $(document).ready(function () {
+    // Initialize Bootstrap Material Design
+    $('body').bootstrapMaterialDesign();
+
+    // Initialize Perfect Scrollbar on the main panel
+    if ($('.main-panel').length) {
+      const mainPanel = document.querySelector('.main-panel');
+      new PerfectScrollbar(mainPanel);
+    }
+
+    // Initialize Perfect Scrollbar on the sidebar
+    if ($('.sidebar').length) {
+      const sidebar = document.querySelector('.sidebar');
+      new PerfectScrollbar(sidebar);
+    }
+  });
+</script>
 
 <script>
   // Chart.js global defaults
@@ -795,106 +817,8 @@
         animateValue('postbank', 0, statsData.postbank || 0, 1000);
       }
 
-      // Initialize Pension and Exclusion Charts
-      const pensionResponse = await fetch("/api/pension-exclusion-stats/");
-      if (pensionResponse.ok) {
-        const pensionData = await pensionResponse.json();
-
-        // Pension Uptake Chart
-        createOrUpdateChart('pensionChart', {
-          labels: ['NSSF', 'MBAO', 'Other'],
-          data: [
-            pensionData.pension.NSSF.data[0],
-            pensionData.pension.MBAO.data[0],
-            pensionData.pension.Other.data[0]
-          ],
-          backgroundColor: [
-            'rgba(99, 102, 241, 0.8)',
-            'rgba(79, 70, 229, 0.8)',
-            'rgba(67, 56, 202, 0.8)'
-          ],
-          borderColor: [
-            'rgba(99, 102, 241, 1)',
-            'rgba(79, 70, 229, 1)',
-            'rgba(67, 56, 202, 1)'
-          ]
-        }, 'bar', {
-          plugins: {
-            title: {
-              display: true,
-              text: 'Pension Uptake',
-              font: { size: 16, weight: '600' },
-              padding: { bottom: 20 }
-            },
-            legend: { display: false }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(0, 0, 0, 0.05)',
-                drawBorder: false
-              },
-              ticks: {
-                callback: function (value) {
-                  return value + '%';
-                },
-                font: { size: 12 }
-              }
-            },
-            x: {
-              grid: {
-                display: false
-              },
-              ticks: {
-                font: { size: 12 }
-              }
-            }
-          },
-          elements: {
-            bar: {
-              borderRadius: 8
-            }
-          }
-        });
-
-        // Financial Exclusion Chart
-        createOrUpdateChart('exclusionGaugeChart', {
-          labels: pensionData.exclusion.labels,
-          data: pensionData.exclusion.data,
-          backgroundColor: [
-            'rgba(99, 102, 241, 0.8)',
-            'rgba(79, 70, 229, 0.8)'
-          ],
-          borderColor: [
-            'rgba(99, 102, 241, 1)',
-            'rgba(79, 70, 229, 1)'
-          ]
-        }, 'doughnut', {
-          cutout: '70%',
-          plugins: {
-            title: {
-              display: true,
-              text: 'Financial Exclusion',
-              font: { size: 16, weight: '600' },
-              padding: { bottom: 20 }
-            },
-            legend: {
-              position: 'bottom',
-              labels: {
-                padding: 20,
-                usePointStyle: true,
-                pointStyle: 'circle'
-              }
-            }
-          },
-          elements: {
-            arc: {
-              borderWidth: 0
-            }
-          }
-        });
-      }
+      // Initialize Pension and Exclusion Charts for 2016
+      await initializePensionAndExclusionCharts();
 
       // Initialize Banking Services Chart
       const bankingResponse = await fetch('/api/banking-services/');
@@ -1055,7 +979,7 @@
         });
       }
 
-      // Initialize Credit Types Chart
+      // Credit Types Chart
       await loadChartData('/api/credit-types/', 'creditTypesChart', 'bar', {
         plugins: {
           title: {
@@ -1106,11 +1030,11 @@
         }
       });
 
-      // Initialize Insurance Types Chart
+      // Insurance Types Chart
       const insuranceResponse = await fetch('/api/insurance-types/');
       if (insuranceResponse.ok) {
         const insuranceData = await insuranceResponse.json();
-        createOrUpdateChart('insuranceTypesChart', {
+        createOrUpdateChart('insuranceTypesChart2016', {
           labels: insuranceData.labels,
           data: insuranceData.data,
           backgroundColor: 'rgba(99, 102, 241, 0.2)',
@@ -1147,14 +1071,14 @@
         });
       }
 
-      // Initialize Savings Methods Chart
+      // Savings Methods Chart
       const savingsResponse = await fetch('/api/savings-methods/');
       if (savingsResponse.ok) {
         const savingsData = await savingsResponse.json();
-        createOrUpdateChart('savingsMethodsChart', {
+        createOrUpdateChart('savingsMethodsChart2016', {
           labels: savingsData.labels,
           data: savingsData.data,
-          backgroundColor: [
+          backgroundColor: savingsData.colors || [
             'rgba(99, 102, 241, 0.8)',
             'rgba(79, 70, 229, 0.8)',
             'rgba(67, 56, 202, 0.8)',
@@ -1206,6 +1130,9 @@
           }
         });
       }
+
+      // Initialize savings type distribution chart
+      await initializeSavingsTypeChart();
 
     } catch (error) {
       console.error('Error initializing charts:', error);
@@ -1310,16 +1237,58 @@
       const data = await response.json();
       console.log(`Data received for ${chartId}:`, data);
 
-      if (data.error) {
+      // Handle different data formats
+      let chartData = {
+        labels: [],
+        data: [],
+        colors: []
+      };
+
+      // Handle pension/exclusion specific format
+      if (data.pension || data.exclusion) {
+        if (chartId.includes('pension')) {
+          chartData = {
+            labels: data.pension.labels,
+            data: data.pension.data,
+            colors: data.pension.colors
+          };
+        } else if (chartId.includes('exclusion')) {
+          chartData = {
+            labels: data.exclusion.labels,
+            data: data.exclusion.data,
+            colors: data.exclusion.colors
+          };
+        }
+      }
+      // Handle standard format
+      else if (data.labels && data.data) {
+        chartData = {
+          labels: data.labels,
+          data: data.data,
+          colors: data.colors || [
+            'rgba(99, 102, 241, 0.8)',
+            'rgba(79, 70, 229, 0.8)',
+            'rgba(67, 56, 202, 0.8)',
+            'rgba(55, 48, 163, 0.8)',
+            'rgba(49, 46, 129, 0.8)'
+          ]
+        };
+      }
+      // Handle error format
+      else if (data.error) {
         throw new Error(data.error);
       }
+      // Handle unexpected format
+      else {
+        throw new Error('Invalid data format');
+      }
 
-      if (!data.labels || !data.data || data.labels.length === 0 || data.data.length === 0) {
-        throw new Error('Invalid data format or empty data');
+      if (!chartData.labels.length || !chartData.data.length) {
+        throw new Error('No data available');
       }
 
       // Create or update the chart
-      createOrUpdateChart(chartId, data, type, options);
+      createOrUpdateChart(chartId, chartData, type, options);
     } catch (error) {
       console.error(`Error loading data for ${chartId}:`, error);
       const canvas = document.getElementById(chartId);
@@ -1333,6 +1302,266 @@
       }
     }
   };
+
+  // Initialize pension and exclusion charts
+  async function initializePensionAndExclusionCharts() {
+    try {
+      const pensionCtx = document.getElementById('pensionChart2016');
+      if (pensionCtx) {
+        new Chart(pensionCtx, {
+          type: 'bar',
+          data: {
+            labels: ['NSSF', 'MBAO', 'Other Pension'],
+            datasets: [{
+              label: 'Pension Uptake (%)',
+              data: [10.79, 0.17, 1.26],
+              backgroundColor: [
+                'rgba(244, 63, 94, 0.8)',  // Red
+                'rgba(225, 29, 72, 0.8)',  // Darker red
+                'rgba(190, 18, 60, 0.8)'   // Even darker red
+              ],
+              borderWidth: 0,
+              borderRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                titleColor: '#1e293b',
+                bodyColor: '#64748b',
+                borderColor: 'rgba(0, 0, 0, 0.1)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                callbacks: {
+                  label: function (context) {
+                    return `${context.label}: ${context.raw}%`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  display: true,
+                  color: 'rgba(0, 0, 0, 0.1)',
+                  drawBorder: false
+                },
+                ticks: {
+                  callback: function (value) {
+                    return value + '%';
+                  },
+                  font: {
+                    size: 12
+                  },
+                  color: '#64748b'
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  font: {
+                    size: 12
+                  },
+                  color: '#64748b'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      const exclusionCtx = document.getElementById('exclusionChart2016');
+      if (exclusionCtx) {
+        new Chart(exclusionCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Financially Included', 'Financially Excluded'],
+            datasets: [{
+              data: [91.46, 8.54],
+              backgroundColor: [
+                'rgba(236, 72, 153, 0.8)', // Pink
+                'rgba(219, 39, 119, 0.8)'  // Darker pink
+              ],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  padding: 20,
+                  boxWidth: 12,
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                  font: {
+                    size: 12
+                  },
+                  color: '#64748b'
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                titleColor: '#1e293b',
+                bodyColor: '#64748b',
+                borderColor: 'rgba(0, 0, 0, 0.1)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                callbacks: {
+                  label: function (context) {
+                    return `${context.label}: ${context.raw}%`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error initializing pension and exclusion charts:', error);
+    }
+  }
+
+  // Initialize health insurance chart
+  async function initializeHealthInsuranceChart() {
+    try {
+      const healthInsuranceCtx = document.getElementById('healthInsuranceChart');
+      if (healthInsuranceCtx) {
+        new Chart(healthInsuranceCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['NHIF', 'Other Health Insurance', 'No Insurance'],
+            datasets: [{
+              data: [19.69, 1.90, 78.41],
+              backgroundColor: [
+                'rgba(99, 102, 241, 0.8)',  // Indigo
+                'rgba(79, 70, 229, 0.8)',   // Darker indigo
+                'rgba(67, 56, 202, 0.8)'    // Even darker indigo
+              ],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  padding: 20,
+                  boxWidth: 12,
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                  font: {
+                    size: 12
+                  },
+                  color: '#64748b'
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                titleColor: '#1e293b',
+                bodyColor: '#64748b',
+                borderColor: 'rgba(0, 0, 0, 0.1)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                callbacks: {
+                  label: function (context) {
+                    return `${context.label}: ${context.raw}%`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error initializing health insurance chart:', error);
+    }
+  }
+
+  // Initialize savings type distribution chart
+  async function initializeSavingsTypeChart() {
+    try {
+      const savingsTypeCtx = document.getElementById('savingsTypeChart2016');
+      if (savingsTypeCtx) {
+        new Chart(savingsTypeCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Formal Savings', 'Informal Savings'],
+            datasets: [{
+              data: [42.3, 57.7],
+              backgroundColor: [
+                'rgba(99, 102, 241, 0.8)',  // Indigo
+                'rgba(79, 70, 229, 0.8)'    // Darker indigo
+              ],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  padding: 20,
+                  boxWidth: 12,
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                  font: {
+                    size: 12
+                  },
+                  color: '#64748b'
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                titleColor: '#1e293b',
+                bodyColor: '#64748b',
+                borderColor: 'rgba(0, 0, 0, 0.1)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                callbacks: {
+                  label: function (context) {
+                    return `${context.label}: ${context.raw}%`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error initializing savings type chart:', error);
+    }
+  }
+
+  // Initialize all charts when the document is ready
+  document.addEventListener('DOMContentLoaded', function () {
+    initializeHealthInsuranceChart();
+    initializePensionAndExclusionCharts();
+    initializeSavingsTypeChart();
+  });
+
 </script>
 
 <!-- Disable Material Dashboard Chartist Initialization -->
@@ -1344,5 +1573,507 @@
       };
     }
   });
+
 </script>
+
+<!-- Add this as a completely new script tag after all your existing scripts -->
+<script>
+  // Separate initialization for financial charts only
+  document.addEventListener('DOMContentLoaded', function () {
+    // Initialize financial charts after a small delay to avoid conflicts
+    setTimeout(async function () {
+      try {
+        // Pension and Exclusion Stats
+        const pensionResponse = await fetch('/api/pension-exclusion-stats-2016/pension/');
+        if (pensionResponse.ok) {
+          const pensionData = await pensionResponse.json();
+          if (document.getElementById('pensionChart2016')) {
+            new Chart(document.getElementById('pensionChart2016').getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: pensionData.labels,
+                datasets: [{
+                  data: pensionData.data,
+                  backgroundColor: pensionData.colors || [
+                    '#f43f5e',
+                    '#e11d48',
+                    '#be123c'
+                  ],
+                  borderWidth: 0,
+                  borderRadius: 4
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        return `${context.label}: ${context.raw}%`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      display: true,
+                      color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                      callback: function (value) {
+                        return value + '%';
+                      }
+                    }
+                  },
+                  x: {
+                    grid: {
+                      display: false
+                    }
+                  }
+                }
+              }
+            });
+          }
+
+          if (document.getElementById('pensionPieChart')) {
+            new Chart(document.getElementById('pensionPieChart').getContext('2d'), {
+              type: 'doughnut',
+              data: {
+                labels: pensionData.labels,
+                datasets: [{
+                  data: pensionData.data,
+                  backgroundColor: pensionData.colors || [
+                    '#64748b',
+                    '#475569',
+                    '#334155'
+                  ],
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                    labels: {
+                      padding: 20,
+                      boxWidth: 12,
+                      usePointStyle: true,
+                      pointStyle: 'circle'
+                    }
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        return `${context.label}: ${context.raw}%`;
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Financial Exclusion
+        const exclusionResponse = await fetch('/api/pension-exclusion-stats-2016/exclusion/');
+        if (exclusionResponse.ok) {
+          const exclusionData = await exclusionResponse.json();
+          console.log('Exclusion data 2016:', exclusionData);
+
+          if (document.getElementById('exclusionGaugeChart2016')) {
+            new Chart(document.getElementById('exclusionGaugeChart2016').getContext('2d'), {
+              type: 'doughnut',
+              data: {
+                labels: exclusionData.labels,
+                datasets: [{
+                  data: exclusionData.data,
+                  backgroundColor: exclusionData.colors || [
+                    '#ec4899',
+                    '#db2777'
+                  ],
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                rotation: 270,
+                circumference: 180,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                    labels: {
+                      padding: 20,
+                      boxWidth: 12,
+                      usePointStyle: true,
+                      pointStyle: 'circle'
+                    }
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const sum = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = Math.round((context.raw / sum) * 100);
+                        return `${context.label}: ${percentage}%`;
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Banking Services
+        const bankingResponse = await fetch('/api/banking-services-api/');
+        if (bankingResponse.ok) {
+          const bankingData = await bankingResponse.json();
+          if (document.getElementById('bankingServicesChart')) {
+            new Chart(document.getElementById('bankingServicesChart').getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: bankingData.labels,
+                datasets: [{
+                  data: bankingData.data,
+                  backgroundColor: bankingData.colors || [
+                    '#06b6d4',
+                    '#0891b2',
+                    '#0e7490',
+                    '#155e75'
+                  ],
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      callback: value => value + '%'
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Digital Services
+        const digitalResponse = await fetch('/api/digital-services-api/');
+        if (digitalResponse.ok) {
+          const digitalData = await digitalResponse.json();
+          if (document.getElementById('digitalServicesChart')) {
+            new Chart(document.getElementById('digitalServicesChart').getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: digitalData.labels,
+                datasets: [{
+                  data: digitalData.data,
+                  backgroundColor: digitalData.colors || [
+                    '#f97316',
+                    '#ea580c',
+                    '#c2410c'
+                  ],
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      callback: value => value + '%'
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Loan Sources
+        const loanResponse = await fetch('/api/loan-sources-api/');
+        if (loanResponse.ok) {
+          const loanData = await loanResponse.json();
+          if (document.getElementById('loanSourcesChart')) {
+            new Chart(document.getElementById('loanSourcesChart').getContext('2d'), {
+              type: 'doughnut',
+              data: {
+                labels: loanData.labels,
+                datasets: [{
+                  data: loanData.data,
+                  backgroundColor: loanData.colors || [
+                    'rgba(99, 102, 241, 0.8)',
+                    'rgba(79, 70, 229, 0.8)',
+                    'rgba(67, 56, 202, 0.8)',
+                    'rgba(55, 48, 163, 0.8)',
+                    'rgba(49, 46, 129, 0.8)'
+                  ],
+                  borderColor: loanData.borderColor || [
+                    'rgba(99, 102, 241, 1)',
+                    'rgba(79, 70, 229, 1)',
+                    'rgba(67, 56, 202, 1)',
+                    'rgba(55, 48, 163, 1)',
+                    'rgba(49, 46, 129, 1)'
+                  ]
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: 'Loan Sources Distribution',
+                    font: { size: 16, weight: '600' },
+                    padding: { bottom: 20 }
+                  },
+                  legend: {
+                    position: 'right',
+                    labels: {
+                      padding: 20,
+                      usePointStyle: true,
+                      pointStyle: 'circle'
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Credit Types
+        const creditResponse = await fetch('/api/credit-types-api/');
+        if (creditResponse.ok) {
+          const creditData = await creditResponse.json();
+          if (document.getElementById('creditTypesChart')) {
+            new Chart(document.getElementById('creditTypesChart').getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: creditData.labels,
+                datasets: [{
+                  data: creditData.data,
+                  backgroundColor: creditData.colors || [
+                    'rgba(99, 102, 241, 0.8)',
+                    'rgba(79, 70, 229, 0.8)',
+                    'rgba(67, 56, 202, 0.8)',
+                    'rgba(55, 48, 163, 0.8)',
+                    'rgba(49, 46, 129, 0.8)'
+                  ],
+                  borderColor: creditData.borderColor || [
+                    'rgba(99, 102, 241, 1)',
+                    'rgba(79, 70, 229, 1)',
+                    'rgba(67, 56, 202, 1)',
+                    'rgba(55, 48, 163, 1)',
+                    'rgba(49, 46, 129, 1)'
+                  ]
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: 'Distribution of Credit Types',
+                    font: { size: 16, weight: '600' },
+                    padding: { bottom: 20 }
+                  },
+                  legend: {
+                    display: false
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Insurance Types
+        const insuranceResponse = await fetch('/api/insurance-types-api/');
+        if (insuranceResponse.ok) {
+          const insuranceData = await insuranceResponse.json();
+          if (document.getElementById('insuranceTypesChart2016')) {
+            new Chart(document.getElementById('insuranceTypesChart2016').getContext('2d'), {
+              type: 'radar',
+              data: {
+                labels: insuranceData.labels,
+                datasets: [{
+                  data: insuranceData.data,
+                  backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                  borderColor: '#10b981',
+                  borderWidth: 2
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: 'Insurance Types Distribution',
+                    font: { size: 16, weight: '600' },
+                    padding: { bottom: 20 }
+                  },
+                  legend: {
+                    display: false
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Health Insurance
+        const healthResponse = await fetch('/api/health-insurance-coverage/');
+        if (healthResponse.ok) {
+          const healthData = await healthResponse.json();
+          if (document.getElementById('healthInsuranceCoverageChart')) {
+            new Chart(document.getElementById('healthInsuranceCoverageChart').getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: healthData.labels,
+                datasets: [{
+                  data: healthData.data,
+                  backgroundColor: healthData.colors,
+                  borderWidth: 0,
+                  borderRadius: 4
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        return `${context.label}: ${context.raw}%`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      display: true,
+                      color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                      callback: function (value) {
+                        return value + '%';
+                      }
+                    }
+                  },
+                  x: {
+                    grid: {
+                      display: false
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Savings Methods
+        const savingsResponse = await fetch('/api/savings-methods-api/');
+        if (savingsResponse.ok) {
+          const savingsData = await savingsResponse.json();
+          if (document.getElementById('savingsMethodsChart2016')) {
+            new Chart(document.getElementById('savingsMethodsChart2016').getContext('2d'), {
+              type: 'polarArea',
+              data: {
+                labels: savingsData.labels,
+                datasets: [{
+                  data: savingsData.data,
+                  backgroundColor: savingsData.colors || [
+                    'rgba(99, 102, 241, 0.8)',
+                    'rgba(79, 70, 229, 0.8)',
+                    'rgba(67, 56, 202, 0.8)',
+                    'rgba(55, 48, 163, 0.8)',
+                    'rgba(49, 46, 129, 0.8)'
+                  ],
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom'
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Savings Type Distribution
+        const savingsTypeResponse = await fetch('/api/savings-type-distribution-2016/');
+        if (savingsTypeResponse.ok) {
+          const savingsTypeData = await savingsTypeResponse.json();
+          if (document.getElementById('savingsTypeChart2016')) {
+            new Chart(document.getElementById('savingsTypeChart2016').getContext('2d'), {
+              type: 'pie',
+              data: {
+                labels: savingsTypeData.labels,
+                datasets: [{
+                  data: savingsTypeData.data,
+                  backgroundColor: savingsTypeData.colors || [
+                    '#f43f5e',
+                    '#e11d48'
+                  ],
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom'
+                  }
+                }
+              }
+            });
+          }
+        }
+
+      } catch (error) {
+        console.error('Error initializing financial charts:', error);
+      }
+    }, 1000); // Small delay to ensure DOM is ready
+  });
+</script>
+
+<script src="https://unpkg.com/perfect-scrollbar@1.5.0/dist/perfect-scrollbar.min.js"></script>
+<script src="https://unpkg.com/bootstrap-material-design@4.1.1/dist/js/bootstrap-material-design.min.js"></script>
+
 {% endblock javascripts %}

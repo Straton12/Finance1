@@ -130,14 +130,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(CORE_DIR, 'apps', 'home', 'static')]
+STATICFILES_DIRS = [
+    os.path.join(CORE_DIR, 'apps', 'static'),
+    os.path.join(CORE_DIR, 'apps', 'home', 'static'),
+]
 STATIC_ROOT = os.path.join(CORE_DIR, 'staticfiles')
 
+# Enable whitenoise for static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Model paths
-MODEL_PATH = os.path.join(BASE_DIR, 'apps', 'home', 'ml_models', 'model.pkl')
-SELECTOR_PATH = os.path.join(
-    BASE_DIR, 'apps', 'home', 'ml_models', 'feature_selector.pkl')
-FEATURES_PATH = os.path.join(
-    BASE_DIR, 'apps', 'home', 'ml_models', 'selected_features.pkl')
+MODEL_PATH = os.path.join(CORE_DIR, 'apps', 'home', 'ml_models', 'voting_ensemble_model.pkl')
+SELECTOR_PATH = os.path.join(CORE_DIR, 'apps', 'home', 'ml_models', 'feature_selector.pkl')
+FEATURES_PATH = os.path.join(CORE_DIR, 'apps', 'home', 'ml_models', 'selected_features.pkl')
 
 #############################################################

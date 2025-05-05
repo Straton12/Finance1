@@ -6,23 +6,17 @@ from pathlib import Path
 # Get the base directory for models
 BASE_DIR = Path(__file__).resolve().parent
 
-# Dictionary mapping model choices to their file paths
-MODEL_PATHS = {
-    'decision_tree': BASE_DIR / 'decision_tree_model.pkl',
-    'logistic_regression': BASE_DIR / 'logistic_regression_model.pkl',
-    'gradient_boosting': BASE_DIR / 'gradient_boosting_model.pkl'
-}
-
 def load_model(model_choice):
     """Load the selected model from disk"""
-    model_key = model_choice.lower().split()[0]
-    if model_key not in MODEL_PATHS:
-        raise ValueError(f"Invalid model choice: {model_choice}")
-    
-    model_path = MODEL_PATHS[model_key]
-    if not model_path.exists():
-        raise FileNotFoundError(f"Model file not found: {model_path}")
-    
+    # Map the exact dropdown value to the model file
+    model_map = {
+        "Decision Tree (Demographics + Behavior, SMOTE)": BASE_DIR / "decision_tree_model.pkl",
+        "Logistic Regression (Demographics + Behavior, Weighted)": BASE_DIR / "logistic_regression_model.pkl",
+        "Gradient Boosting (Demographics Only, SMOTE)": BASE_DIR / "gradient_boosting_model.pkl"
+    }
+    model_path = model_map.get(model_choice)
+    if not model_path or not model_path.exists():
+        raise FileNotFoundError(f"Model file not found for: {model_choice}")
     return joblib.load(model_path)
 
 def prepare_input_data(input_data, model_choice):
@@ -49,6 +43,13 @@ def prepare_input_data(input_data, model_choice):
     
     # Get dummy variables
     df = pd.get_dummies(df)
+    
+    # Align columns to the exact order used in training
+    selected_features = joblib.load(BASE_DIR / 'selected_features.pkl')
+    for col in selected_features:
+        if col not in df.columns:
+            df[col] = 0
+    df = df[selected_features]
     
     return df
 

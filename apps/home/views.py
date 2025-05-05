@@ -109,12 +109,8 @@ def age_distribution(request):
 def gender_distribution(request):
     try:
         total = SurveyData2016.objects.count()
-        print(f"Total records: {total}")  # Debug log
-
         if total == 0:
-            print("No data available for gender distribution")  # Debug log
-            return JsonResponse({'error': 'No data available'}, status=404)
-
+            return JsonResponse({'labels': [], 'data': []})
         gender_data = SurveyData2016.objects.exclude(gender__isnull=True).values('gender').annotate(
             count=models.Count('gender')
         ).order_by('gender')
@@ -136,9 +132,7 @@ def gender_distribution(request):
         return JsonResponse(response_data)
     except Exception as e:
         logger.error(f"Error in gender_distribution: {str(e)}")
-        print(f"Gender distribution error: {str(e)}")  # Debug log
-        return JsonResponse({'error': str(e)}, status=500)
-
+        return JsonResponse({'labels': [], 'data': []})
 
 
 @csrf_exempt
@@ -146,12 +140,8 @@ def gender_distribution(request):
 def education_distribution(request):
     try:
         total = SurveyData2016.objects.count()
-        print(f"Total records: {total}")  # Debug log
-        
         if total == 0:
-            print("No data available for education distribution")  # Debug log
-            return JsonResponse({'error': 'No data available'}, status=404)
-
+            return JsonResponse({'labels': [], 'data': []})
         education_counts = {
             'Primary': SurveyData2016.objects.filter(education_level__icontains='primary').count(),
             'Secondary': SurveyData2016.objects.filter(education_level__icontains='secondary').count(),
@@ -181,8 +171,7 @@ def education_distribution(request):
         return JsonResponse(response_data)
     except Exception as e:
         logger.error(f"Error in education_distribution: {str(e)}")
-        print(f"Education distribution error: {str(e)}")  # Debug log
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'labels': [], 'data': []})
 
 
 @csrf_exempt
@@ -190,12 +179,8 @@ def education_distribution(request):
 def residence_type_distribution(request):
     try:
         total = SurveyData2016.objects.count()
-        print(f"Total records: {total}")  # Debug log
-        
         if total == 0:
-            print("No data available for residence type distribution")  # Debug log
-            return JsonResponse({'error': 'No data available'}, status=404)
-
+            return JsonResponse({'labels': [], 'data': []})
         residence_data = SurveyData2016.objects.exclude(residence_type__isnull=True).values('residence_type').annotate(
             count=Count('residence_type')
         ).order_by('residence_type')
@@ -217,8 +202,7 @@ def residence_type_distribution(request):
         return JsonResponse(response_data)
     except Exception as e:
         logger.error(f"Error in residence_type_distribution: {str(e)}")
-        print(f"Residence type distribution error: {str(e)}")  # Debug log
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'labels': [], 'data': []})
 
 
 def age_distribution1(request):
@@ -378,63 +362,45 @@ def pension_and_exclusion_stats(request):
     """Fetch pension and financial exclusion stats and return them in JSON format for Chart.js."""
     try:
         # Get all survey data
-        survey_data = SurveyData2016.objects.all()
+        survey_data = SurveyData2021.objects.all()
+        
+        # Calculate total respondents
+        total_respondents = survey_data.count()
+        if total_respondents == 0:
+            return JsonResponse({'error': 'No data available'}, status=404)
 
-        # Function to count unique values in a field
-        def get_value_counts(field_name):
-            return (survey_data
-                    .values(field_name)
-                    .annotate(count=Count(field_name))
-                    .order_by('-count'))
-
-        # Count for each pension type
-        pension_nssf = get_value_counts('pension_nssf')
-        pension_mbao = get_value_counts('pension_mbao')
-        pension_other = get_value_counts('pension_other')
-
-        # Format as {label: count}
-        def format_counts(queryset, field_name):
-            return {
-                item[field_name] if item[field_name] else "Unknown": item['count']
-                for item in queryset
-            }
-
-        # Prepare the pension statistics data
+        # Calculate pension statistics
         pension_stats = {
-            'NSSF': format_counts(pension_nssf, 'pension_nssf'),
-            'MBAO': format_counts(pension_mbao, 'pension_mbao'),
-            'Other': format_counts(pension_other, 'pension_other'),
+            'NSSF': round(survey_data.filter(pension_nssf='Yes').count() * 100 / total_respondents, 2),
+            'MBAO': round(survey_data.filter(pension_mbao='Yes').count() * 100 / total_respondents, 2),
+            'Other': round(survey_data.filter(pension_other='Yes').count() * 100 / total_respondents, 2)
         }
 
         # Financial exclusion statistics
-        excluded = survey_data.filter(
-            financially_excluded__iexact='Yes').count()
-        total = survey_data.count()
-        included = total - excluded
-        exclusion_percentage = round(
-            (excluded / total) * 100, 2) if total else 0
+        excluded = survey_data.filter(financially_excluded__iexact='Yes').count()
+        included = total_respondents - excluded
+        exclusion_percentage = round((excluded / total_respondents) * 100, 2) if total_respondents else 0
 
         # Return JSON response
         return JsonResponse({
             'pension': {
-                pension_type: {
-                    'labels': list(data.keys()),
-                    'data': list(data.values())
-                }
-                for pension_type, data in pension_stats.items()
+                'labels': list(pension_stats.keys()),
+                'data': list(pension_stats.values()),
+                'colors': ['#64748b', '#475569', '#334155']
             },
             'exclusion': {
                 'labels': ['Excluded', 'Included'],
                 'data': [excluded, included],
-                'percentage': exclusion_percentage
+                'percentage': exclusion_percentage,
+                'colors': ['#ec4899', '#db2777']
             }
         })
 
     except Exception as e:
-        # Log error for debugging
         logger.error(f"Error fetching pension and exclusion stats: {e}")
         return JsonResponse({'error': 'Internal server error'}, status=500)
-    
+
+        
     
 @csrf_exempt
 @require_GET
@@ -535,92 +501,85 @@ def home_view(request):
     return render(request, 'ui-maps.html')
 
 
+@login_required(login_url="/login/")
+def ui_maps(request):
+    return render(request, 'home/ui-maps.html')
+
+
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def predict_view(request):
-    """Handle prediction requests"""
     if request.method == 'GET':
         return render(request, 'home/ui-maps.html')
-
+    
     try:
-        # Create a dictionary to store the form data
-        data = {
-            # Demographic data - keep as strings for categorical variables
+        # Extract form data
+        form_data = {
+            'age': int(request.POST.get('age', 0)),
             'gender': request.POST.get('gender', '').lower(),
             'education_level': request.POST.get('education_level', '').lower(),
             'residence_type': request.POST.get('residence_type', '').lower(),
             'marital_status': request.POST.get('marital_status', '').lower(),
             'relationship_to_hh': request.POST.get('relationship_to_hh', '').lower(),
             'region': request.POST.get('region', '').lower(),
+            'mobile_money': request.POST.get('mobile_money') == 'on',
+            'bank_account': request.POST.get('bank_account') == 'on',
+            'savings_account': request.POST.get('savings_account') == 'on',
+            'loan': request.POST.get('loan') == 'on',
+            'insurance': request.POST.get('insurance') == 'on',
+            'pension': request.POST.get('pension') == 'on',
+            'has_debit_card': request.POST.get('has_debit_card') == 'on',
+            'has_credit_card': request.POST.get('has_credit_card') == 'on',
+            'savings_microfinance': request.POST.get('savings_microfinance') == 'on',
+            'savings_sacco': request.POST.get('savings_sacco') == 'on',
+            'savings_group': request.POST.get('savings_group') == 'on'
         }
 
-        # Handle age separately since it needs to be numeric
-        try:
-            data['age'] = int(request.POST.get('age', 35))
-        except (ValueError, TypeError):
-            data['age'] = 35  # Default age if conversion fails
-
-        # Define all possible behavioral fields
-        behavioral_fields = [
-            'mobile_money', 'bank_account', 'savings_account',
-            'loan', 'insurance', 'pension', 'has_debit_card',
-            'has_credit_card', 'savings_microfinance', 'savings_sacco',
-            'savings_group'
-        ]
-
-        # Set behavioral fields to boolean values
-        for field in behavioral_fields:
-            data[field] = request.POST.get(field) == 'on'
-
-        # Get model choice with default
-        model_choice = request.POST.get(
-            'model_choice', 'Decision Tree (Demographics + Behavior, SMOTE)')
-        print(f"Model choice: {model_choice}")  # Debug print
-        print(f"Input data: {data}")  # Debug print
-
+        # Get selected model
+        model_choice = request.POST.get('model_choice', 'Decision Tree (Demographics + Behavior, SMOTE)')
+        
         # Make prediction
-        results = make_prediction(data, model_choice)
-        print(f"Prediction results: {results}")  # Debug print
-
-        # Return JSON response
-        return JsonResponse({
-            'status': 'success',
-            'prediction': results['prediction'],
-            # Already a percentage from make_prediction
-            'probability': results['probability'],
-            'factors': results['factors']
-        })
+        result = make_prediction(form_data, model_choice)
+        
+        if result['status'] == 'success':
+            return JsonResponse(result)
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'error': result.get('error', 'Unknown error occurred')
+            }, status=500)
+    
     except Exception as e:
-        print(f"Prediction error: {str(e)}")  # Debug print
+        logger.error(f"Error in predict_view: {str(e)}")
         return JsonResponse({
             'status': 'error',
-            'error': f'Error making prediction: {str(e)}'
+            'error': str(e)
         }, status=500)
 
 
+@require_GET
 def financial_stats(request):
-    stats = {
-        'savings_mobile_banking': SurveyData2016.objects.aggregate(
-            savings_mobile_banking_count=models.Count('savings_mobile_banking')
-        )['savings_mobile_banking_count'],
+    try:
+        total = SurveyData2016.objects.count()
+        print(f"Total respondents for financial stats: {total}")
+        
+        if total == 0:
+            return JsonResponse({'error': 'No data available'}, status=404)
 
-        'bank_current': SurveyData2016.objects.aggregate(
-            bank_current_count=models.Count('bank_account_current')
-        )['bank_current_count'],
-
-        'bank_savings': SurveyData2016.objects.aggregate(
-            bank_savings_count=models.Count('bank_account_savings')
-        )['bank_savings_count'],
-
-        'bank_everyday': SurveyData2016.objects.aggregate(
-            bank_everyday_count=models.Count('bank_account_everyday')
-        )['bank_everyday_count'],
-
-        'postbank': SurveyData2016.objects.aggregate(
-            postbank_count=models.Count('postbank_account')
-        )['postbank_count']
-    }
-    return JsonResponse(stats)
+        # Count 'Yes' responses for each category (case-insensitive)
+        stats = {
+            'savings_mobile_banking': round((SurveyData2016.objects.filter(Q(savings_mobile_banking__iexact='yes') | Q(savings_mobile_banking__iexact='y')).count() / total) * 100, 2),
+            'bank_current': round((SurveyData2016.objects.filter(Q(bank_account_current__iexact='yes') | Q(bank_account_current__iexact='y')).count() / total) * 100, 2),
+            'bank_savings': round((SurveyData2016.objects.filter(Q(bank_account_savings__iexact='yes') | Q(bank_account_savings__iexact='y')).count() / total) * 100, 2),
+            'bank_everyday': round((SurveyData2016.objects.filter(Q(bank_account_everyday__iexact='yes') | Q(bank_account_everyday__iexact='y')).count() / total) * 100, 2),
+            'postbank': round((SurveyData2016.objects.filter(Q(postbank_account__iexact='yes') | Q(postbank_account__iexact='y')).count() / total) * 100, 2)
+        }
+        
+        print(f"2016 Financial Stats: {stats}")
+        return JsonResponse(stats)
+    except Exception as e:
+        logger.error(f"Error in financial_stats: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def financial_stats1(request):
@@ -772,552 +731,641 @@ def generate_explanation(model, input_data, feature_names):
     return explanation[:5]  # Return top 5 factors
 
 
-@require_http_methods(["GET"])
+@require_GET
 def banking_services_api(request):
     try:
         total = SurveyData2016.objects.count()
+        print(f"Total respondents for banking services: {total}")
+        
         if total == 0:
-            return JsonResponse({'error': 'No data available'}, status=404)
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
             
-        # Calculate percentages for each banking service
+        # Get counts with case-insensitive matching
         services_data = {
-            'Mobile Banking': SurveyData2016.objects.filter(savings_mobile_banking='Yes').count(),
-            'Current Account': SurveyData2016.objects.filter(bank_account_current='Yes').count(),
-            'Savings Account': SurveyData2016.objects.filter(bank_account_savings='Yes').count(),
-            'Everyday Account': SurveyData2016.objects.filter(bank_account_everyday='Yes').count(),
-            'Post Bank': SurveyData2016.objects.filter(postbank_account='Yes').count()
+            'Mobile Banking': SurveyData2016.objects.filter(Q(savings_mobile_banking__iexact='yes') | Q(savings_mobile_banking__iexact='y')).count(),
+            'Current Account': SurveyData2016.objects.filter(Q(bank_account_current__iexact='yes') | Q(bank_account_current__iexact='y')).count(),
+            'Savings Account': SurveyData2016.objects.filter(Q(bank_account_savings__iexact='yes') | Q(bank_account_savings__iexact='y')).count(),
+            'Everyday Account': SurveyData2016.objects.filter(Q(bank_account_everyday__iexact='yes') | Q(bank_account_everyday__iexact='y')).count(),
+            'Post Bank': SurveyData2016.objects.filter(Q(postbank_account__iexact='yes') | Q(postbank_account__iexact='y')).count()
         }
         
-        # Convert to percentages
+        print(f"Raw banking services counts: {services_data}")
+        
+        # Calculate percentages
         services_percentages = {
-            key: round((value / total) * 100, 2) 
+            key: round((value / total) * 100, 2)
             for key, value in services_data.items()
         }
         
+        print(f"Banking services percentages: {services_percentages}")
+        
+        color_palette = [
+            'rgba(99, 102, 241, 0.7)',
+            'rgba(129, 140, 248, 0.7)',
+            'rgba(165, 180, 252, 0.7)',
+            'rgba(199, 210, 254, 0.7)',
+            'rgba(224, 231, 255, 0.7)'
+        ]
+        
         data = {
             'labels': list(services_percentages.keys()),
-            'data': list(services_percentages.values())
+            'data': list(services_percentages.values()),
+            'colors': color_palette[:len(services_percentages)]
         }
         
+        print(f"Final banking services response: {data}")
         return JsonResponse(data)
     except Exception as e:
         logger.error(f"Error in banking_services_api: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
 
-@require_http_methods(["GET"])
+@require_GET
 def digital_services_api(request):
     try:
         total = SurveyData2016.objects.count()
+        print(f"Total respondents for digital services: {total}")
+        
         if total == 0:
-            return JsonResponse({'error': 'No data available'}, status=404)
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
             
-        # Calculate percentages for each digital service
+        # Get counts with case-insensitive matching
         services_data = {
-            'Mobile Money': SurveyData2016.objects.filter(mobile_money_registered='Yes').count(),
-            'Mobile Banking': SurveyData2016.objects.filter(savings_mobile_banking='Yes').count(),
-            'Digital Loans': SurveyData2016.objects.filter(loan_digital_app='Yes').count()
+            'Mobile Money': SurveyData2016.objects.filter(Q(mobile_money_registered__iexact='yes') | Q(mobile_money_registered__iexact='y')).count(),
+            'Mobile Banking': SurveyData2016.objects.filter(Q(savings_mobile_banking__iexact='yes') | Q(savings_mobile_banking__iexact='y')).count(),
+            'Digital Loans': SurveyData2016.objects.filter(Q(loan_digital_app__iexact='yes') | Q(loan_digital_app__iexact='y')).count()
         }
         
-        # Convert to percentages
+        print(f"Raw digital services counts: {services_data}")
+        
+        # Calculate percentages
         services_percentages = {
-            key: round((value / total) * 100, 2) 
+            key: round((value / total) * 100, 2)
             for key, value in services_data.items()
         }
         
+        print(f"Digital services percentages: {services_percentages}")
+        
+        color_palette = [
+            'rgba(99, 102, 241, 0.7)',
+            'rgba(129, 140, 248, 0.7)',
+            'rgba(165, 180, 252, 0.7)'
+        ]
+        
         data = {
             'labels': list(services_percentages.keys()),
-            'data': list(services_percentages.values())
+            'data': list(services_percentages.values()),
+            'colors': color_palette[:len(services_percentages)]
         }
         
+        print(f"Final digital services response: {data}")
         return JsonResponse(data)
     except Exception as e:
         logger.error(f"Error in digital_services_api: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
 
-@require_http_methods(["GET"])
+@require_GET
 def loan_sources_api(request):
     try:
         total = SurveyData2016.objects.count()
+        print(f"Total respondents for loan sources: {total}")
+        
         if total == 0:
-            return JsonResponse({'error': 'No data available'}, status=404)
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
             
-        # Calculate percentages for each loan source
+        # Get counts with case-insensitive matching
         loan_data = {
-            'Bank Loans': SurveyData2016.objects.filter(loan_bank='Yes').count(),
-            'SACCO Loans': SurveyData2016.objects.filter(loan_sacco='Yes').count(),
-            'Mobile Loans': SurveyData2016.objects.filter(loan_mobile_banking='Yes').count(),
-            'MFI Loans': SurveyData2016.objects.filter(loan_microfinance='Yes').count(),
-            'Informal Loans': SurveyData2016.objects.filter(loan_family_friend='Yes').count()
+            'Bank Loans': SurveyData2016.objects.filter(Q(loan_bank__iexact='yes') | Q(loan_bank__iexact='y')).count(),
+            'SACCO Loans': SurveyData2016.objects.filter(Q(loan_sacco__iexact='yes') | Q(loan_sacco__iexact='y')).count(),
+            'Mobile Loans': SurveyData2016.objects.filter(Q(loan_mobile_banking__iexact='yes') | Q(loan_mobile_banking__iexact='y')).count(),
+            'MFI Loans': SurveyData2016.objects.filter(Q(loan_microfinance__iexact='yes') | Q(loan_microfinance__iexact='y')).count(),
+            'Informal Loans': SurveyData2016.objects.filter(Q(loan_family_friend__iexact='yes') | Q(loan_family_friend__iexact='y')).count()
         }
         
-        # Convert to percentages
-        loan_percentages = {
-            key: round((value / total) * 100, 2) 
-            for key, value in loan_data.items()
-        }
+        print(f"Raw loan source counts: {loan_data}")
+        
+        # Calculate percentages
+        loan_percentages = {k: round((v / total) * 100, 2) for k, v in loan_data.items()}
+        
+        print(f"Loan source percentages: {loan_percentages}")
+        
+        color_palette = [
+            'rgba(99, 102, 241, 0.7)',
+            'rgba(129, 140, 248, 0.7)',
+            'rgba(165, 180, 252, 0.7)',
+            'rgba(199, 210, 254, 0.7)',
+            'rgba(224, 231, 255, 0.7)'
+        ]
         
         data = {
             'labels': list(loan_percentages.keys()),
-            'data': list(loan_percentages.values())
+            'data': list(loan_percentages.values()),
+            'colors': color_palette[:len(loan_percentages)]
         }
         
+        print(f"Final loan sources response: {data}")
         return JsonResponse(data)
     except Exception as e:
         logger.error(f"Error in loan_sources_api: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
 
-@require_http_methods(["GET"])
+@require_GET
+def credit_types_api(request):
+    try:
+        total = SurveyData2016.objects.count()
+        print(f"Total respondents for credit types: {total}")
+        
+        if total == 0:
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
+            
+        # Get counts with case-insensitive matching
+        credit_data = {
+            'Bank Loans': SurveyData2016.objects.filter(Q(loan_bank__iexact='yes') | Q(loan_bank__iexact='y')).count(),
+            'Digital Loans': SurveyData2016.objects.filter(Q(loan_digital_app__iexact='yes') | Q(loan_digital_app__iexact='y')).count(),
+            'SACCO Loans': SurveyData2016.objects.filter(Q(loan_sacco__iexact='yes') | Q(loan_sacco__iexact='y')).count(),
+            'Chama/Group Loans': SurveyData2016.objects.filter(Q(loan_group_chama__iexact='yes') | Q(loan_group_chama__iexact='y')).count(),
+            'Government Loans': SurveyData2016.objects.filter(Q(loan_govt__iexact='yes') | Q(loan_govt__iexact='y')).count(),
+            'Employer Loans': SurveyData2016.objects.filter(Q(loan_employer__iexact='yes') | Q(loan_employer__iexact='y')).count()
+        }
+        
+        print(f"Raw credit type counts: {credit_data}")
+        
+        # Calculate percentages
+        credit_percentages = {k: round((v / total) * 100, 2) for k, v in credit_data.items()}
+        
+        print(f"Credit type percentages: {credit_percentages}")
+        
+        color_palette = [
+            'rgba(99, 102, 241, 0.7)',
+            'rgba(129, 140, 248, 0.7)',
+            'rgba(165, 180, 252, 0.7)',
+            'rgba(199, 210, 254, 0.7)',
+            'rgba(224, 231, 255, 0.7)',
+            'rgba(238, 242, 255, 0.7)'
+        ]
+        
+        data = {
+            'labels': list(credit_percentages.keys()),
+            'data': list(credit_percentages.values()),
+            'colors': color_palette[:len(credit_percentages)]
+        }
+        
+        print(f"Final credit types response: {data}")
+        return JsonResponse(data)
+    except Exception as e:
+        logger.error(f"Error in credit_types_api: {str(e)}")
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
+
+@require_GET
 def insurance_types_api(request):
     try:
         total = SurveyData2016.objects.count()
+        print(f"Total insurance respondents: {total}")
+        
         if total == 0:
-            return JsonResponse({'error': 'No data available'}, status=404)
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
             
-        # Calculate percentages for each insurance type
+        # Get counts with case-insensitive matching
         insurance_counts = {
-            'Health Insurance': SurveyData2016.objects.filter(insurance_health_other='Yes').count(),
-            'Life Insurance': SurveyData2016.objects.filter(insurance_life='Yes').count(),
-            'Property Insurance': SurveyData2016.objects.filter(insurance_home='Yes').count(),
-            'Education Insurance': SurveyData2016.objects.filter(insurance_education='Yes').count(),
-            'NHIF': SurveyData2016.objects.filter(insurance_nhif='Yes').count()
+            'Health Insurance': SurveyData2016.objects.filter(Q(insurance_health_other__iexact='yes') | Q(insurance_health_other__iexact='y')).count(),
+            'Life Insurance': SurveyData2016.objects.filter(Q(insurance_life__iexact='yes') | Q(insurance_life__iexact='y')).count(),
+            'Property Insurance': SurveyData2016.objects.filter(Q(insurance_home__iexact='yes') | Q(insurance_home__iexact='y')).count(),
+            'Education Insurance': SurveyData2016.objects.filter(Q(insurance_education__iexact='yes') | Q(insurance_education__iexact='y')).count(),
+            'NHIF': SurveyData2016.objects.filter(Q(insurance_nhif__iexact='yes') | Q(insurance_nhif__iexact='y')).count()
         }
         
-        # Convert to percentages
-        insurance_percentages = {
-            key: round((value / total) * 100, 2) 
-            for key, value in insurance_counts.items()
-        }
+        print(f"Raw insurance counts: {insurance_counts}")
+        
+        # Calculate percentages
+        insurance_percentages = {k: round((v / total) * 100, 2) for k, v in insurance_counts.items()}
+        
+        print(f"Insurance percentages: {insurance_percentages}")
         
         data = {
             'labels': list(insurance_percentages.keys()),
-            'data': list(insurance_percentages.values())
+            'data': list(insurance_percentages.values()),
+            'colors': ['#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63']
         }
         
+        print(f"Final insurance types response: {data}")
         return JsonResponse(data)
     except Exception as e:
         logger.error(f"Error in insurance_types_api: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
 
-@require_http_methods(["GET"])
+@require_GET
 def savings_methods_api(request):
     try:
         total = SurveyData2016.objects.count()
+        print(f"Total respondents for savings methods: {total}")
+        
         if total == 0:
-            return JsonResponse({'error': 'No data available'}, status=404)
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
             
-        # Calculate percentages for each savings method
+        # Get counts with case-insensitive matching
         savings_counts = {
-            'Bank Savings': SurveyData2016.objects.filter(bank_account_savings='Yes').count(),
-            'SACCO Savings': SurveyData2016.objects.filter(savings_sacco='Yes').count(),
-            'Mobile Savings': SurveyData2016.objects.filter(savings_mobile_banking='Yes').count(),
-            'Group Savings': SurveyData2016.objects.filter(savings_group_friends='Yes').count(),
-            'Informal Savings': SurveyData2016.objects.filter(savings_secret_place='Yes').count()
+            'Bank Savings': SurveyData2016.objects.filter(Q(bank_account_savings__iexact='yes') | Q(bank_account_savings__iexact='y')).count(),
+            'SACCO Savings': SurveyData2016.objects.filter(Q(savings_sacco__iexact='yes') | Q(savings_sacco__iexact='y')).count(),
+            'Mobile Savings': SurveyData2016.objects.filter(Q(savings_mobile_banking__iexact='yes') | Q(savings_mobile_banking__iexact='y')).count(),
+            'Group Savings': SurveyData2016.objects.filter(Q(savings_group_friends__iexact='yes') | Q(savings_group_friends__iexact='y')).count(),
+            'Informal Savings': SurveyData2016.objects.filter(Q(savings_secret_place__iexact='yes') | Q(savings_secret_place__iexact='y')).count()
         }
         
-        # Convert to percentages
-        savings_percentages = {
-            key: round((value / total) * 100, 2) 
-            for key, value in savings_counts.items()
-        }
+        print(f"Raw savings counts: {savings_counts}")
+        
+        # Calculate percentages
+        savings_percentages = {k: round((v / total) * 100, 2) for k, v in savings_counts.items()}
+        
+        print(f"Savings percentages: {savings_percentages}")
         
         data = {
             'labels': list(savings_percentages.keys()),
             'data': list(savings_percentages.values()),
-            'backgroundColor': [
-                'rgba(99, 102, 241, 0.7)',
-                'rgba(236, 72, 153, 0.7)',
-                'rgba(34, 197, 94, 0.7)',
-                'rgba(249, 115, 22, 0.7)',
-                'rgba(6, 182, 212, 0.7)'
-            ],
-            'borderColor': [
-                'rgba(99, 102, 241, 1)',
-                'rgba(236, 72, 153, 1)',
-                'rgba(34, 197, 94, 1)',
-                'rgba(249, 115, 22, 1)',
-                'rgba(6, 182, 212, 1)'
-            ]
+            'colors': ['#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63', '#083344']
         }
         
+        print(f"Final savings methods response: {data}")
         return JsonResponse(data)
     except Exception as e:
         logger.error(f"Error in savings_methods_api: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
 
-@require_http_methods(["GET"])
-def credit_types_api(request):
+@require_GET
+def savings_type_distribution_2016(request):
+    """Return the distribution of formal vs informal savings for 2016."""
     try:
-        total = SurveyData2016.objects.count()
-        if total == 0:
-            return JsonResponse({'error': 'No data available'}, status=404)
-            
-        data = {
-            'labels': ['Bank Loans', 'Digital Loans', 'SACCO Loans', 'Chama/Group Loans', 'Government Loans', 'Employer Loans'],
-            'data': [
-                SurveyData2016.objects.filter(loan_bank='Yes').count() * 100 / total,
-                SurveyData2016.objects.filter(loan_digital_app='Yes').count() * 100 / total,
-                SurveyData2016.objects.filter(loan_sacco='Yes').count() * 100 / total,
-                SurveyData2016.objects.filter(loan_group_chama='Yes').count() * 100 / total,
-                SurveyData2016.objects.filter(loan_govt='Yes').count() * 100 / total,
-                SurveyData2016.objects.filter(loan_employer='Yes').count() * 100 / total
-            ]
-        }
-        return JsonResponse(data)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-@api_view(['GET'])
-def digital_vs_traditional_loans_api(request):
-    try:
-        # Get total count of valid responses for each loan type
-        total_respondents = SurveyData2021.objects.count()
-        logger.debug(f"Total respondents: {total_respondents}")
-
-        if total_respondents == 0:
-            return Response({
-                "error": "No data available"
-            }, status=404)
-
-        # Count for digital app loans (case-insensitive)
-        digital_loans = SurveyData2021.objects.filter(
-            loan_digital_app__iexact='yes'
-        ).count()
-        logger.debug(f"Digital app loans count: {digital_loans}")
-
-        # Count for mobile banking loans (case-insensitive)
-        mobile_loans = SurveyData2021.objects.filter(
-            loan_mobile_banking__iexact='yes'
-        ).count()
-        logger.debug(f"Mobile banking loans count: {mobile_loans}")
-
-        # Count for traditional bank loans (case-insensitive)
-        traditional_loans = SurveyData2021.objects.filter(
-            loan_bank__iexact='yes'
-        ).count()
-        logger.debug(f"Traditional bank loans count: {traditional_loans}")
-
-        # Calculate percentages based on total respondents
-        digital_percent = round((digital_loans / total_respondents) * 100, 2)
-        mobile_percent = round((mobile_loans / total_respondents) * 100, 2)
-        traditional_percent = round((traditional_loans / total_respondents) * 100, 2)
-
-        logger.debug(f"Percentages - Digital: {digital_percent}%, Mobile: {mobile_percent}%, Traditional: {traditional_percent}%")
-
+        total_respondents = SurveyData2016.objects.count()
+        
+        # Count formal savings (bank, SACCO, microfinance)
+        formal_savings = SurveyData2016.objects.filter(
+            Q(bank_account_savings__iexact='yes') |
+            Q(savings_sacco__iexact='yes') |
+            Q(savings_microfinance__iexact='yes') |
+            Q(savings_mobile_banking__iexact='yes')
+        ).distinct().count()
+        
+        # Count informal savings (secret place, group/friends, family/friend)
+        informal_savings = SurveyData2016.objects.filter(
+            Q(savings_secret_place__iexact='yes') |
+            Q(savings_group_friends__iexact='yes') |
+            Q(savings_family_friend__iexact='yes')
+        ).distinct().count()
+        
+        # Calculate percentages
+        formal_percent = round((formal_savings / total_respondents) * 100, 2)
+        informal_percent = round((informal_savings / total_respondents) * 100, 2)
+        
+        # Log the data for debugging
+        logger.info(f"Savings distribution - Formal: {formal_percent}%, Informal: {informal_percent}%")
+        logger.info(f"Raw counts - Formal: {formal_savings}, Informal: {informal_savings}, Total: {total_respondents}")
+        
         response_data = {
-            "labels": ["Digital App Loans", "Mobile Banking Loans", "Traditional Bank Loans"],
-            "data": [digital_percent, mobile_percent, traditional_percent],
-            "colors": ["#FF6384", "#36A2EB", "#FFCE56"]
+            'labels': ['Formal Savings', 'Informal Savings'],
+            'data': [formal_percent, informal_percent],
+            'colors': ['#f43f5e', '#e11d48']
         }
         
-        logger.debug(f"Returning response data: {response_data}")
-        return Response(response_data)
-
+        return JsonResponse(response_data)
     except Exception as e:
-        logger.error(f"Error in digital_vs_traditional_loans_api: {str(e)}")
-        return Response({
-            "error": f"An error occurred while processing the request: {str(e)}"
-        }, status=500)
+        logger.error(f"Error in savings_type_distribution_2016: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
-@csrf_exempt
+@require_GET
+def digital_vs_traditional_loans_api(request):
+    total_respondents = SurveyData2021.objects.count()
+    if total_respondents == 0:
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
+    # Get total count of valid responses for each loan type
+    digital_loans = SurveyData2021.objects.filter(loan_digital_app='Yes').count()
+    mobile_loans = SurveyData2021.objects.filter(loan_mobile_banking='Yes').count()
+    traditional_loans = SurveyData2021.objects.filter(loan_bank='Yes').count()
+
+    # Calculate percentages based on total respondents
+    digital_percent = round((digital_loans / total_respondents) * 100, 2)
+    mobile_percent = round((mobile_loans / total_respondents) * 100, 2)
+    traditional_percent = round((traditional_loans / total_respondents) * 100, 2)
+
+    response_data = {
+        "labels": ["Digital App Loans", "Mobile Banking Loans", "Traditional Bank Loans"],
+        "data": [digital_percent, mobile_percent, traditional_percent],
+        "colors": ["#FF6384", "#36A2EB", "#FFCE56"]
+    }
+    return JsonResponse(response_data)
+
 @require_GET
 def informal_lending_api(request):
-    try:
-        # Count responses for each informal lending source
-        informal_sources = {
-            'Shylock': SurveyData2021.objects.filter(
-                loan_shylock__in=['yes', 'Yes', 'loan_shylock']
-            ).count(),
-            'Family/Friends': SurveyData2021.objects.filter(
-                loan_family_friend__in=['yes', 'Yes', 'loan_family_friend']
-            ).count(),
-            'Group/Chama': SurveyData2021.objects.filter(
-                loan_group_chama__in=['yes', 'Yes', 'loan_group_chama']
-            ).count(),
-            'Shopkeeper': SurveyData2021.objects.filter(
-                loan_shopkeeper_cash__in=['yes', 'Yes', 'loan_shopkeeper']
-            ).count()
-        }
-        
-        # Debug logging
-        for source, count in informal_sources.items():
-            print(f"DEBUG: {source}: {count}")
-        
-        data = {
-            'labels': list(informal_sources.keys()),
-            'data': list(informal_sources.values()),
-            'colors': ['#f59e0b', '#d97706', '#b45309', '#92400e']
-        }
-        return JsonResponse(data)
-    except Exception as e:
-        print(f"ERROR: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+    total_respondents = SurveyData2021.objects.count()
+    if total_respondents == 0:
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
+    # Count responses for each informal lending source
+    informal_sources = {
+        'Shylock': SurveyData2021.objects.filter(loan_shylock='Yes').count(),
+        'Family/Friends': SurveyData2021.objects.filter(loan_family_friend='Yes').count(),
+        'Group/Chama': SurveyData2021.objects.filter(loan_group_chama='Yes').count(),
+        'Shopkeeper': SurveyData2021.objects.filter(loan_shopkeeper_cash='Yes').count()
+    }
+    # Calculate percentages
+    percentages = [round((count / total_respondents) * 100, 2) for count in informal_sources.values()]
+    data = {
+        'labels': list(informal_sources.keys()),
+        'data': percentages,
+        'colors': ['#f59e0b', '#d97706', '#b45309', '#92400e']
+    }
+    return JsonResponse(data)
 
-@csrf_exempt
 @require_GET
 def health_insurance_api(request):
     try:
-        # Get total respondents excluding null values
-        total_respondents = SurveyData2021.objects.exclude(
-            insurance_nhif__isnull=True,
-            insurance_health_other__isnull=True
-        ).count()
+        total = SurveyData2016.objects.count()
+        print(f"Total health insurance respondents: {total}")
         
-        # Count only 'Yes' responses
-        nhif = SurveyData2021.objects.filter(insurance_nhif='Yes').count()
-        other_health = SurveyData2021.objects.filter(insurance_health_other='Yes').count()
+        if total == 0:
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
+            
+        # Get counts with case-insensitive matching
+        health_counts = {
+            'NHIF': SurveyData2016.objects.filter(Q(insurance_nhif__iexact='yes') | Q(insurance_nhif__iexact='y')).count(),
+            'Other Health Insurance': SurveyData2016.objects.filter(Q(insurance_health_other__iexact='yes') | Q(insurance_health_other__iexact='y')).count()
+        }
+        
+        print(f"Raw health insurance counts: {health_counts}")
         
         # Calculate percentages
-        if total_respondents > 0:
-            nhif_percent = round((nhif/total_respondents)*100, 2)
-            other_percent = round((other_health/total_respondents)*100, 2)
-        else:
-            nhif_percent = other_percent = 0
+        health_percentages = {k: round((v / total) * 100, 2) for k, v in health_counts.items()}
         
-        # Log the values for debugging
-        logger.info(f"NHIF: {nhif}/{total_respondents} = {nhif_percent}%")
-        logger.info(f"Other Health Insurance: {other_health}/{total_respondents} = {other_percent}%")
+        print(f"Health insurance percentages: {health_percentages}")
         
         data = {
-            'labels': ['NHIF', 'Other Health Insurance'],
-            'data': [nhif_percent, other_percent],
-            'colors': ['#10b981', '#059669']
+            'labels': list(health_percentages.keys()),
+            'data': list(health_percentages.values()),
+            'colors': ['#06b6d4', '#0891b2']
         }
+        
+        print(f"Final health insurance response: {data}")
         return JsonResponse(data)
     except Exception as e:
         logger.error(f"Error in health_insurance_api: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
 
-@csrf_exempt
 @require_GET
 def asset_insurance_api(request):
-    try:
-        # Get total respondents excluding null values
-        total_respondents = SurveyData2021.objects.exclude(
-            insurance_motor__isnull=True,
-            insurance_home__isnull=True,
-            insurance_life__isnull=True,
-            insurance_education__isnull=True
-        ).count()
-        
-        # Count only 'Yes' responses
-        assets = {
-            'Motor': SurveyData2021.objects.filter(insurance_motor='Yes').count(),
-            'Home': SurveyData2021.objects.filter(insurance_home='Yes').count(),
-            'Life': SurveyData2021.objects.filter(insurance_life='Yes').count(),
-            'Education': SurveyData2021.objects.filter(insurance_education='Yes').count()
-        }
-        
-        # Calculate percentages
-        if total_respondents > 0:
-            percentages = {k: round((v/total_respondents)*100, 2) for k, v in assets.items()}
-        else:
-            percentages = {k: 0 for k in assets.keys()}
-        
-        # Log the values for debugging
-        for asset, percent in percentages.items():
-            logger.info(f"{asset}: {assets[asset]}/{total_respondents} = {percent}%")
-        
-        data = {
-            'labels': list(percentages.keys()),
-            'data': list(percentages.values()),
-            'colors': ['#3b82f6', '#2563eb', '#1d4ed8', '#1e40af']
-        }
-        return JsonResponse(data)
-    except Exception as e:
-        logger.error(f"Error in asset_insurance_api: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+    total_respondents = SurveyData2021.objects.count()
+    if total_respondents == 0:
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
+    assets = {
+        'Motor': SurveyData2021.objects.filter(insurance_motor='Yes').count(),
+        'Home': SurveyData2021.objects.filter(insurance_home='Yes').count(),
+        'Life': SurveyData2021.objects.filter(insurance_life='Yes').count(),
+        'Education': SurveyData2021.objects.filter(insurance_education='Yes').count()
+    }
+    percentages = [round((v / total_respondents) * 100, 2) for v in assets.values()]
+    data = {
+        'labels': list(assets.keys()),
+        'data': percentages,
+        'colors': ['#3b82f6', '#2563eb', '#1d4ed8', '#1e40af']
+    }
+    return JsonResponse(data)
 
-@csrf_exempt
 @require_GET
 def agri_insurance_api(request):
-    try:
-        # Get total respondents excluding null values
-        total_respondents = SurveyData2021.objects.exclude(
-            insurance_crop__isnull=True,
-            insurance_livestock__isnull=True
-        ).count()
-        
-        # Count only 'Yes' responses
-        crop = SurveyData2021.objects.filter(insurance_crop='Yes').count()
-        livestock = SurveyData2021.objects.filter(insurance_livestock='Yes').count()
-        
-        # Calculate percentages
-        if total_respondents > 0:
-            crop_percent = round((crop/total_respondents)*100, 2)
-            livestock_percent = round((livestock/total_respondents)*100, 2)
-        else:
-            crop_percent = livestock_percent = 0
-        
-        # Log the values for debugging
-        logger.info(f"Crop Insurance: {crop}/{total_respondents} = {crop_percent}%")
-        logger.info(f"Livestock Insurance: {livestock}/{total_respondents} = {livestock_percent}%")
-        
-        data = {
-            'labels': ['Crop Insurance', 'Livestock Insurance'],
-            'data': [crop_percent, livestock_percent],
-            'colors': ['#ec4899', '#db2777']
-        }
-        return JsonResponse(data)
-    except Exception as e:
-        logger.error(f"Error in agri_insurance_api: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+    total_respondents = SurveyData2021.objects.count()
+    if total_respondents == 0:
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
+    crop = SurveyData2021.objects.filter(insurance_crop='Yes').count()
+    livestock = SurveyData2021.objects.filter(insurance_livestock='Yes').count()
+    crop_percent = round((crop / total_respondents) * 100, 2)
+    livestock_percent = round((livestock / total_respondents) * 100, 2)
+    data = {
+        'labels': ['Crop Insurance', 'Livestock Insurance'],
+        'data': [crop_percent, livestock_percent],
+        'colors': ['#ec4899', '#db2777']
+    }
+    return JsonResponse(data)
 
-@csrf_exempt
 @require_GET
 def savings_channels_api(request):
     try:
-        # Get total respondents excluding null values
-        total_respondents = SurveyData2021.objects.exclude(
-            savings_mobile_banking__isnull=True,
-            savings_microfinance__isnull=True,
-            savings_sacco__isnull=True,
-            savings_group_friends__isnull=True,
-            savings_family_friend__isnull=True,
-            savings_secret_place__isnull=True
-        ).count()
+        total = SurveyData2016.objects.count()
+        print(f"Total respondents for savings channels: {total}")
         
-        # Count only 'Yes' responses
+        if total == 0:
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
+            
+        # Get counts with case-insensitive matching
         channels = {
-            'Mobile Banking': SurveyData2021.objects.filter(savings_mobile_banking='Yes').count(),
-            'Microfinance': SurveyData2021.objects.filter(savings_microfinance='Yes').count(),
-            'SACCO': SurveyData2021.objects.filter(savings_sacco='Yes').count(),
-            'Group/Friends': SurveyData2021.objects.filter(savings_group_friends='Yes').count(),
-            'Family/Friend': SurveyData2021.objects.filter(savings_family_friend='Yes').count(),
-            'Secret Place': SurveyData2021.objects.filter(savings_secret_place='Yes').count()
+            'Mobile Banking': SurveyData2016.objects.filter(Q(savings_mobile_banking__iexact='yes') | Q(savings_mobile_banking__iexact='y')).count(),
+            'Microfinance': SurveyData2016.objects.filter(Q(savings_microfinance__iexact='yes') | Q(savings_microfinance__iexact='y')).count(),
+            'SACCO': SurveyData2016.objects.filter(Q(savings_sacco__iexact='yes') | Q(savings_sacco__iexact='y')).count(),
+            'Group/Friends': SurveyData2016.objects.filter(Q(savings_group_friends__iexact='yes') | Q(savings_group_friends__iexact='y')).count(),
+            'Family/Friend': SurveyData2016.objects.filter(Q(savings_family_friend__iexact='yes') | Q(savings_family_friend__iexact='y')).count(),
+            'Secret Place': SurveyData2016.objects.filter(Q(savings_secret_place__iexact='yes') | Q(savings_secret_place__iexact='y')).count()
         }
         
-        # Calculate percentages
-        if total_respondents > 0:
-            percentages = {k: round((v/total_respondents)*100, 2) for k, v in channels.items()}
-        else:
-            percentages = {k: 0 for k in channels.keys()}
+        print(f"Raw savings channel counts: {channels}")
         
-        # Log the values for debugging
-        for channel, percent in percentages.items():
-            logger.info(f"{channel}: {channels[channel]}/{total_respondents} = {percent}%")
+        # Calculate percentages
+        percentages = {k: round((v / total) * 100, 2) for k, v in channels.items()}
+        
+        print(f"Savings channel percentages: {percentages}")
         
         data = {
             'labels': list(percentages.keys()),
             'data': list(percentages.values()),
             'colors': ['#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63', '#083344']
         }
+        
+        print(f"Final savings channels response: {data}")
         return JsonResponse(data)
     except Exception as e:
         logger.error(f"Error in savings_channels_api: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
 
-@csrf_exempt
 @require_GET
 def digital_savings_api(request):
     try:
-        # Get total respondents excluding null values
-        total_respondents = SurveyData2021.objects.exclude(
-            savings_mobile_banking__isnull=True,
-            debit_card__isnull=True,
-            credit_card__isnull=True
-        ).count()
+        total = SurveyData2016.objects.count()
+        print(f"Total respondents for digital savings: {total}")
         
-        # Count only 'Yes' responses
-        digital_products = {
-            'Mobile Banking': SurveyData2021.objects.filter(savings_mobile_banking='Yes').count(),
-            'Digital Wallet': SurveyData2021.objects.filter(debit_card='Yes').count(),
-            'Credit Card': SurveyData2021.objects.filter(credit_card='Yes').count()
+        if total == 0:
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
+            
+        # Get counts with case-insensitive matching
+        digital_savings = {
+            'Mobile Banking': SurveyData2016.objects.filter(Q(savings_mobile_banking__iexact='yes') | Q(savings_mobile_banking__iexact='y')).count(),
+            'Digital Wallet': SurveyData2016.objects.filter(Q(mobile_money_registered__iexact='yes') | Q(mobile_money_registered__iexact='y')).count(),
+            'Credit Card': SurveyData2016.objects.filter(Q(credit_card__iexact='yes') | Q(credit_card__iexact='y')).count()
         }
         
-        # Calculate percentages
-        if total_respondents > 0:
-            percentages = {k: round((v/total_respondents)*100, 2) for k, v in digital_products.items()}
-        else:
-            percentages = {k: 0 for k in digital_products.keys()}
+        print(f"Raw digital savings counts: {digital_savings}")
         
-        # Log the values for debugging
-        for product, percent in percentages.items():
-            logger.info(f"{product}: {digital_products[product]}/{total_respondents} = {percent}%")
+        # Calculate percentages
+        percentages = {k: round((v / total) * 100, 2) for k, v in digital_savings.items()}
+        
+        print(f"Digital savings percentages: {percentages}")
         
         data = {
             'labels': list(percentages.keys()),
             'data': list(percentages.values()),
-            'colors': ['#f43f5e', '#e11d48', '#be123c']
+            'colors': ['#06b6d4', '#0891b2', '#0e7490']
         }
+        
+        print(f"Final digital savings response: {data}")
         return JsonResponse(data)
     except Exception as e:
         logger.error(f"Error in digital_savings_api: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
 
-@csrf_exempt
 @require_GET
 def account_types_api(request):
     try:
-        # Get total respondents excluding null values
-        total_respondents = SurveyData2021.objects.exclude(
-            bank_account_current__isnull=True,
-            bank_account_savings__isnull=True,
-            bank_account_everyday__isnull=True,
-            postbank_account__isnull=True
-        ).count()
+        total = SurveyData2016.objects.count()
+        print(f"Total respondents for account types: {total}")
         
-        # Count only 'Yes' responses
+        if total == 0:
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
+            
+        # Get counts with case-insensitive matching
         accounts = {
-            'Current Account': SurveyData2021.objects.filter(bank_account_current='Yes').count(),
-            'Savings Account': SurveyData2021.objects.filter(bank_account_savings='Yes').count(),
-            'Everyday Account': SurveyData2021.objects.filter(bank_account_everyday='Yes').count(),
-            'Postbank Account': SurveyData2021.objects.filter(postbank_account='Yes').count()
+            'Current Account': SurveyData2016.objects.filter(Q(bank_account_current__iexact='yes') | Q(bank_account_current__iexact='y')).count(),
+            'Savings Account': SurveyData2016.objects.filter(Q(bank_account_savings__iexact='yes') | Q(bank_account_savings__iexact='y')).count(),
+            'Everyday Account': SurveyData2016.objects.filter(Q(bank_account_everyday__iexact='yes') | Q(bank_account_everyday__iexact='y')).count(),
+            'Postbank Account': SurveyData2016.objects.filter(Q(postbank_account__iexact='yes') | Q(postbank_account__iexact='y')).count()
         }
         
-        # Calculate percentages
-        if total_respondents > 0:
-            percentages = {k: round((v/total_respondents)*100, 2) for k, v in accounts.items()}
-        else:
-            percentages = {k: 0 for k in accounts.keys()}
+        print(f"Raw account type counts: {accounts}")
         
-        # Log the values for debugging
-        for account, percent in percentages.items():
-            logger.info(f"{account}: {accounts[account]}/{total_respondents} = {percent}%")
+        # Calculate percentages
+        percentages = {k: round((v / total) * 100, 2) for k, v in accounts.items()}
+        
+        print(f"Account type percentages: {percentages}")
         
         data = {
             'labels': list(percentages.keys()),
             'data': list(percentages.values()),
-            'colors': ['#6366f1', '#4f46e5', '#4338ca', '#3730a3']
+            'colors': ['#06b6d4', '#0891b2', '#0e7490', '#155e75']
         }
+        
+        print(f"Final account types response: {data}")
         return JsonResponse(data)
     except Exception as e:
         logger.error(f"Error in account_types_api: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
 
-@csrf_exempt
 @require_GET
 def banking_products_api(request):
     try:
-        # Get total respondents excluding null values
-        total_respondents = SurveyData2021.objects.exclude(
-            debit_card__isnull=True,
-            credit_card__isnull=True,
-            bank_overdraft__isnull=True
-        ).count()
+        total = SurveyData2016.objects.count()
+        print(f"Total respondents for banking products: {total}")
         
-        # Count only 'Yes' responses
+        if total == 0:
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
+            
+        # Get counts with case-insensitive matching
         products = {
-            'Debit Card': SurveyData2021.objects.filter(debit_card='Yes').count(),
-            'Credit Card': SurveyData2021.objects.filter(credit_card='Yes').count(),
-            'Overdraft': SurveyData2021.objects.filter(bank_overdraft='Yes').count()
+            'Debit Card': SurveyData2016.objects.filter(Q(debit_card__iexact='yes') | Q(debit_card__iexact='y')).count(),
+            'Credit Card': SurveyData2016.objects.filter(Q(credit_card__iexact='yes') | Q(credit_card__iexact='y')).count(),
+            'Overdraft': SurveyData2016.objects.filter(Q(bank_overdraft__iexact='yes') | Q(bank_overdraft__iexact='y')).count()
         }
         
-        # Calculate percentages
-        if total_respondents > 0:
-            percentages = {k: round((v/total_respondents)*100, 2) for k, v in products.items()}
-        else:
-            percentages = {k: 0 for k in products.keys()}
+        print(f"Raw banking product counts: {products}")
         
-        # Log the values for debugging
-        for product, percent in percentages.items():
-            logger.info(f"{product}: {products[product]}/{total_respondents} = {percent}%")
+        # Calculate percentages
+        percentages = {k: round((v / total) * 100, 2) for k, v in products.items()}
+        
+        print(f"Banking product percentages: {percentages}")
         
         data = {
             'labels': list(percentages.keys()),
             'data': list(percentages.values()),
-            'colors': ['#0ea5e9', '#0284c7', '#0369a1']
+            'colors': ['#06b6d4', '#0891b2', '#0e7490']
         }
+        
+        print(f"Final banking products response: {data}")
         return JsonResponse(data)
     except Exception as e:
         logger.error(f"Error in banking_products_api: {str(e)}")
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
+
+@require_GET
+def pension_and_exclusion_stats_2016(request):
+    """Return pension and financial exclusion statistics for 2016."""
+    try:
+        total_respondents = SurveyData2016.objects.count()
+        
+        # Get pension stats with case-insensitive matching
+        nssf_users = SurveyData2016.objects.filter(pension_nssf__iexact='yes').count()
+        mbao_users = SurveyData2016.objects.filter(pension_mbao__iexact='yes').count()
+        other_pension = SurveyData2016.objects.filter(pension_other__iexact='yes').count()
+        
+        # Calculate percentages
+        nssf_percent = round((nssf_users / total_respondents) * 100, 2)
+        mbao_percent = round((mbao_users / total_respondents) * 100, 2)
+        other_percent = round((other_pension / total_respondents) * 100, 2)
+        
+        # Get financial exclusion stats
+        excluded = SurveyData2016.objects.filter(financially_excluded__iexact='yes').count()
+        included = total_respondents - excluded
+        
+        # Calculate exclusion percentages
+        excluded_percent = round((excluded / total_respondents) * 100, 2)
+        included_percent = round(100 - excluded_percent, 2)
+        
+        # Log the data for debugging
+        logger.info(f"Pension stats - NSSF: {nssf_percent}%, MBAO: {mbao_percent}%, Other: {other_percent}%")
+        logger.info(f"Financial exclusion - Excluded: {excluded_percent}%, Included: {included_percent}%")
+        
+        response_data = {
+            'pension': {
+                'labels': ['NSSF', 'MBAO', 'Other Pension'],
+                'data': [nssf_percent, mbao_percent, other_percent],
+                'colors': ['#f43f5e', '#e11d48', '#be123c']
+            },
+            'exclusion': {
+                'labels': ['Financially Included', 'Financially Excluded'],
+                'data': [included_percent, excluded_percent],
+                'colors': ['#ec4899', '#db2777']
+            }
+        }
+        
+        return JsonResponse(response_data)
+    except Exception as e:
+        logger.error(f"Error in pension_and_exclusion_stats_2016: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
+
+@require_GET
+def health_insurance_coverage_api(request):
+    """Return health insurance coverage statistics."""
+    try:
+        total_respondents = SurveyData2016.objects.count()
+        
+        # Count users with different types of health insurance
+        nhif_users = SurveyData2016.objects.filter(insurance_nhif__iexact='yes').count()
+        other_health_insurance = SurveyData2016.objects.filter(insurance_health_other__iexact='yes').count()
+        
+        # Calculate percentages
+        nhif_percent = round((nhif_users / total_respondents) * 100, 2)
+        other_percent = round((other_health_insurance / total_respondents) * 100, 2)
+        no_insurance_percent = round(100 - (nhif_percent + other_percent), 2)
+        
+        # Log the data for debugging
+        logger.info(f"Health insurance coverage - NHIF: {nhif_percent}%, Other: {other_percent}%, None: {no_insurance_percent}%")
+        logger.info(f"Raw counts - NHIF: {nhif_users}, Other: {other_health_insurance}, Total: {total_respondents}")
+        
+        response_data = {
+            'labels': ['NHIF Coverage', 'Other Health Insurance', 'No Health Insurance'],
+            'data': [nhif_percent, other_percent, no_insurance_percent],
+            'colors': ['#06b6d4', '#0891b2', '#0e7490']
+        }
+        
+        return JsonResponse(response_data)
+    except Exception as e:
+        logger.error(f"Error in health_insurance_coverage_api: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+
+
+
+######################
+#####################
+##########################
+###################

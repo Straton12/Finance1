@@ -594,6 +594,155 @@
               <canvas id="savingsTypeChart"></canvas>
             </div>
           </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);"></div>
+              <div>
+                <h4 class="chart-title">Asset Insurance</h4>
+                <p class="chart-subtitle">Distribution of asset insurance types</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="assetInsuranceChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);"></div>
+              <div>
+                <h4 class="chart-title">Agricultural Insurance</h4>
+                <p class="chart-subtitle">Crop and livestock insurance</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="agriInsuranceChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Savings Methods/Behavior Section -->
+      <div class="section-wrapper">
+        <h2 class="section-title">Savings Methods/Behavior</h2>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);"></div>
+              <div>
+                <h4 class="chart-title">Savings Channels</h4>
+                <p class="chart-subtitle">Distribution of savings channels</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="savingsChannelsChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-indicator" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);"></div>
+              <div>
+                <h4 class="chart-title">Digital Savings</h4>
+                <p class="chart-subtitle">Digital savings products</p>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="digitalSavingsChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Additional Charts Section for 2021 Data -->
+  <div class="section-wrapper">
+    <h2 class="section-title">2021 Financial Products & Exclusion</h2>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-indicator" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);"></div>
+          <div>
+            <h4 class="chart-title">Digital vs Traditional Loans</h4>
+            <p class="chart-subtitle">Comparison of loan types</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="digitalLoansChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-indicator" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);"></div>
+          <div>
+            <h4 class="chart-title">Informal Lending</h4>
+            <p class="chart-subtitle">Distribution of informal lending sources</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="informalLendingChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-indicator" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);"></div>
+          <div>
+            <h4 class="chart-title">Account Types</h4>
+            <p class="chart-subtitle">Distribution of account types</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="accountTypesChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-indicator" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);"></div>
+          <div>
+            <h4 class="chart-title">Banking Products</h4>
+            <p class="chart-subtitle">Distribution of banking products</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="bankingProductsChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-indicator" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);"></div>
+          <div>
+            <h4 class="chart-title">Pension Uptake</h4>
+            <p class="chart-subtitle">Breakdown by pension type</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="pensionChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-indicator" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%);"></div>
+          <div>
+            <h4 class="chart-title">Pension Types</h4>
+            <p class="chart-subtitle">Distribution of pension types</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="pensionPieChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-indicator" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);"></div>
+          <div>
+            <h4 class="chart-title">Financial Exclusion</h4>
+            <p class="chart-subtitle">Rate of financial exclusion</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="exclusionGaugeChart"></canvas>
         </div>
       </div>
     </div>
@@ -1144,6 +1293,79 @@
           rotation: 270,
           cutout: '75%'
         }
+      },
+      {
+        endpoint: '/api/insurance-types/',
+        chartId: 'insuranceTypesChart',
+        type: 'bar',
+        options: {
+          parsing: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function (value) {
+                  return value + '%';
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw.toFixed(1)}%`;
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        endpoint: '/api/savings-methods/',
+        chartId: 'savingsMethodsChart',
+        type: 'bar',
+        options: {
+          parsing: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function (value) {
+                  return value + '%';
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw.toFixed(1)}%`;
+                }
+              }
+            }
+          }
+        }
+      },
+      // Add missing 2021 dataset charts here if not already present:
+      {
+        endpoint: '/api/savings-type-distribution1/', // <-- Ensure this endpoint exists and returns {labels, data, colors}
+        chartId: 'savingsTypeChart',
+        type: 'pie',
+        options: {
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw}`;
+                }
+              }
+            }
+          }
+        }
       }
     ];
 
@@ -1161,62 +1383,6 @@
       console.error('Error during initialization:', error);
     }
   });
-
-  async function initializeDigitalVsTraditionalChart() {
-    try {
-      const response = await fetch('/api/digital-vs-traditional-loans/');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-
-      // Clear any existing chart
-      const existingChart = Chart.getChart("digitalVsTraditionalChart");
-      if (existingChart) {
-        existingChart.destroy();
-      }
-
-      const ctx = document.getElementById('digitalVsTraditionalChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: data.labels,
-          datasets: [{
-            label: 'Number of Loans',
-            data: data.data,
-            backgroundColor: data.colors,
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              callbacks: {
-                label: function (context) {
-                  return `Count: ${context.raw}`;
-                }
-              }
-            }
-          }
-        }
-      });
-    } catch (error) {
-      console.error('Error initializing digital vs traditional loans chart:', error);
-    }
-  }
 
   // Call the initialization function when the document is ready
   document.addEventListener('DOMContentLoaded', function () {
