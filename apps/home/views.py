@@ -513,47 +513,77 @@ def predict_view(request):
         return render(request, 'home/ui-maps.html')
     
     try:
+        # Get selected model first
+        model_choice = request.POST.get('model_choice')
+        if not model_choice:
+            return JsonResponse({
+                'status': 'error',
+                'error': 'Please select a prediction model'
+            }, status=400)
+            
+        print(f"Selected model: {model_choice}")
+        
         # Extract form data
-        form_data = {
-            'age': int(request.POST.get('age', 0)),
-            'gender': request.POST.get('gender', '').lower(),
-            'education_level': request.POST.get('education_level', '').lower(),
-            'residence_type': request.POST.get('residence_type', '').lower(),
-            'marital_status': request.POST.get('marital_status', '').lower(),
-            'relationship_to_hh': request.POST.get('relationship_to_hh', '').lower(),
-            'region': request.POST.get('region', '').lower(),
-            'mobile_money': request.POST.get('mobile_money') == 'on',
-            'bank_account': request.POST.get('bank_account') == 'on',
-            'savings_account': request.POST.get('savings_account') == 'on',
-            'loan': request.POST.get('loan') == 'on',
-            'insurance': request.POST.get('insurance') == 'on',
-            'pension': request.POST.get('pension') == 'on',
-            'has_debit_card': request.POST.get('has_debit_card') == 'on',
-            'has_credit_card': request.POST.get('has_credit_card') == 'on',
-            'savings_microfinance': request.POST.get('savings_microfinance') == 'on',
-            'savings_sacco': request.POST.get('savings_sacco') == 'on',
-            'savings_group': request.POST.get('savings_group') == 'on'
-        }
-
-        # Get selected model
-        model_choice = request.POST.get('model_choice', 'Decision Tree (Demographics + Behavior, SMOTE)')
+        try:
+            form_data = {
+                'age': int(request.POST.get('age', 0)),
+                'gender': request.POST.get('gender', '').lower(),
+                'education_level': request.POST.get('education_level', '').lower(),
+                'residence_type': request.POST.get('residence_type', '').lower(),
+                'marital_status': request.POST.get('marital_status', '').lower(),
+                'relationship_to_hh': request.POST.get('relationship_to_hh', '').lower(),
+                'region': request.POST.get('region', '').lower(),
+                'mobile_money': request.POST.get('mobile_money') == 'on',
+                'bank_account': request.POST.get('bank_account') == 'on',
+                'savings_account': request.POST.get('savings_account') == 'on',
+                'loan': request.POST.get('loan') == 'on',
+                'insurance': request.POST.get('insurance') == 'on',
+                'pension': request.POST.get('pension') == 'on',
+                'has_debit_card': request.POST.get('has_debit_card') == 'on',
+                'has_credit_card': request.POST.get('has_credit_card') == 'on',
+                'savings_microfinance': request.POST.get('savings_microfinance') == 'on',
+                'savings_sacco': request.POST.get('savings_sacco') == 'on',
+                'savings_group': request.POST.get('savings_group') == 'on'
+            }
+        except ValueError as e:
+            return JsonResponse({
+                'status': 'error',
+                'error': f'Invalid input data: {str(e)}'
+            }, status=400)
+            
+        print(f"Processed form data: {form_data}")
+        
+        # Validate required fields
+        required_fields = ['age', 'gender', 'education_level', 'residence_type', 
+                         'marital_status', 'relationship_to_hh', 'region']
+        missing_fields = [field for field in required_fields 
+                         if not form_data.get(field)]
+        
+        if missing_fields:
+            return JsonResponse({
+                'status': 'error',
+                'error': f'Missing required fields: {", ".join(missing_fields)}'
+            }, status=400)
         
         # Make prediction
         result = make_prediction(form_data, model_choice)
+        print(f"Prediction result: {result}")
         
         if result['status'] == 'success':
             return JsonResponse(result)
         else:
+            error_msg = result.get('error', 'Unknown error occurred')
+            logger.error(f"Prediction error: {error_msg}")
             return JsonResponse({
                 'status': 'error',
-                'error': result.get('error', 'Unknown error occurred')
+                'error': error_msg
             }, status=500)
     
     except Exception as e:
         logger.error(f"Error in predict_view: {str(e)}")
         return JsonResponse({
             'status': 'error',
-            'error': str(e)
+            'error': f'Server error: {str(e)}'
         }, status=500)
 
 

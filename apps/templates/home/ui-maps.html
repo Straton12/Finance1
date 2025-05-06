@@ -3,7 +3,22 @@
 {% block title %} Financial Inclusion Predictor {% endblock %}
 
 {% block stylesheets %}
+<!-- Material Design Bootstrap CSS -->
+<link rel="stylesheet"
+    href="https://unpkg.com/bootstrap-material-design@4.1.3/dist/css/bootstrap-material-design.min.css">
+<!-- Perfect Scrollbar CSS -->
+<link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/perfect-scrollbar/1.5.5/css/perfect-scrollbar.min.css">
 <style>
+    /* Replace -ms-high-contrast with modern forced-colors-mode */
+    @media (forced-colors: active) {
+        .btn-predict {
+            forced-color-adjust: none;
+            background: ButtonText;
+            color: ButtonFace;
+        }
+    }
+
     .predictor-container {
         padding: 2rem;
         max-width: 1200px;
@@ -225,11 +240,12 @@
         <label class="form-label">Choose prediction model:</label>
         <select id="model-choice" class="form-control">
             <option value="">Select a model...</option>
-            <option value="Logistic Regression (Demographics + Behavior, Weighted)">Decision Tree (Demographics + Behavior,
+            <option value="Decision Tree (Demographics + Behavior, SMOTE)">Decision Tree (Demographics + Behavior,
                 SMOTE)</option>
-            <option value="Decision Tree (Demographics + Behavior, SMOTE)">Voting Ensemble (Demographics +
-                Behavior)</option>
-            <option value="Gradient Boosting (Demographics Only, SMOTE)">Voting Ensemble (Demographics Only)</option>
+            <option value="Logistic Regression (Demographics + Behavior, Weighted)">Logistic Regression (Demographics +
+                Behavior, Weighted)</option>
+            <option value="Gradient Boosting (Demographics Only, SMOTE)">Gradient Boosting (Demographics Only, SMOTE)
+            </option>
         </select>
     </div>
 
@@ -435,8 +451,49 @@
 {% endblock content %}
 
 {% block javascripts %}
+<!-- Core Dependencies -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/popper.js@1.12.6/dist/umd/popper.js"></script>
+<script src="https://unpkg.com/arrive@2.4.1/minified/arrive.min.js"></script>
+<script src="https://unpkg.com/bootstrap-material-design@4.1.3/dist/js/bootstrap-material-design.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/perfect-scrollbar/1.5.5/perfect-scrollbar.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
+    // Wait for all dependencies to load
+    window.addEventListener('load', function () {
+        // Initialize Material Design
+        try {
+            if ($.fn.bootstrapMaterialDesign) {
+                $('body').bootstrapMaterialDesign();
+                console.log('Material Design initialized successfully');
+            } else {
+                console.warn('Bootstrap Material Design plugin not loaded');
+            }
+        } catch (e) {
+            console.warn('Error initializing Material Design:', e);
+        }
+
+        // Initialize Perfect Scrollbar
+        try {
+            if (typeof PerfectScrollbar !== 'undefined') {
+                const containers = document.querySelectorAll('.main-panel, .sidebar');
+                containers.forEach(container => {
+                    if (container) {
+                        new PerfectScrollbar(container, {
+                            suppressScrollX: true
+                        });
+                    }
+                });
+                console.log('Perfect Scrollbar initialized successfully');
+            } else {
+                console.warn('Perfect Scrollbar not loaded');
+            }
+        } catch (e) {
+            console.warn('Error initializing Perfect Scrollbar:', e);
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('prediction-form');
         const modelChoice = document.getElementById('model-choice');
@@ -528,22 +585,22 @@
             // Update factors list
             if (data.factors && data.factors.length > 0) {
                 factorsList.innerHTML = data.factors.map(factor => `
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>${factor.feature}</span>
-                        <span style="color: ${factor.direction === 'positive' ? '#D32F2F' : '#388E3C'}">
-                            ${factor.direction === 'positive' ? '↑' : '↓'} ${(factor.impact * 100).toFixed(2)}%
-                        </span>
-                    </div>
-                `).join('');
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>${factor.feature}</span>
+                <span style="color: ${factor.direction === 'positive' ? '#D32F2F' : '#388E3C'}">
+                    ${factor.direction === 'positive' ? '↑' : '↓'} ${(factor.impact * 100).toFixed(2)}%
+                </span>
+            </div>
+        `).join('');
 
                 // Add explanation
                 factorsList.innerHTML += `
-                    <div class="alert alert-info mt-3" role="alert">
-                        <p class="mb-0"><strong>Explanation:</strong></p>
-                        <p class="mb-0">The factors above show the features that most influenced this prediction.</p>
-                        <p class="mb-0">Red arrows (↑) indicate factors that increase the likelihood of financial exclusion, while green arrows (↓) indicate factors that decrease it.</p>
-                    </div>
-                `;
+            <div class="alert alert-info mt-3" role="alert">
+                <p class="mb-0"><strong>Explanation:</strong></p>
+                <p class="mb-0">The factors above show the features that most influenced this prediction.</p>
+                <p class="mb-0">Red arrows (↑) indicate factors that increase the likelihood of financial exclusion, while green arrows (↓) indicate factors that decrease it.</p>
+            </div>
+        `;
             }
 
             // Show results section
@@ -563,11 +620,13 @@
             const submitButton = form.querySelector('.btn-predict');
             const loadingSpinner = submitButton.querySelector('.loading');
             const buttonText = submitButton.querySelector('span');
+            const predictionResults = document.getElementById('prediction-results');
 
             // Show loading state
             buttonText.style.display = 'none';
             loadingSpinner.style.display = 'block';
             submitButton.disabled = true;
+            predictionResults.style.display = 'none';
 
             try {
                 const formData = new FormData(form);
@@ -591,20 +650,39 @@
                     }
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error("Server returned an invalid response format");
                 }
 
                 const data = await response.json();
 
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+
                 if (data.status === 'success') {
                     updatePredictionDisplay(data);
+                    predictionResults.style.display = 'block';
+                    predictionResults.scrollIntoView({ behavior: 'smooth' });
                 } else {
                     throw new Error(data.error || 'Prediction failed');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error making prediction: ' + error.message);
+                // Show error message to user
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger mt-3';
+                errorDiv.innerHTML = `
+                <strong>Error making prediction:</strong><br>
+                ${error.message || 'An unexpected error occurred. Please try again.'}
+            `;
+                form.appendChild(errorDiv);
+
+                // Remove error message after 5 seconds
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 5000);
             } finally {
                 // Reset button state
                 buttonText.style.display = 'block';
@@ -614,90 +692,6 @@
         });
     });
 
-    // Function to create or update a chart
-    function createOrUpdateChart(chartId, data, type = 'bar', options = {}) {
-        const ctx = document.getElementById(chartId).getContext('2d');
-
-        // Destroy existing chart if it exists
-        if (window.charts && window.charts[chartId]) {
-            window.charts[chartId].destroy();
-        }
-
-        // Initialize charts object if it doesn't exist
-        if (!window.charts) {
-            window.charts = {};
-        }
-
-        // Default options
-        const defaultOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            return `${context.label}: ${context.raw}%`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        callback: function (value) {
-                            return value + '%';
-                        }
-                    }
-                }
-            }
-        };
-
-        // Merge default options with provided options
-        const chartOptions = { ...defaultOptions, ...options };
-
-        // Create new chart
-        window.charts[chartId] = new Chart(ctx, {
-            type: type,
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    data: data.data,
-                    backgroundColor: [
-                        'rgba(75, 192, 192, 0.6)',
-                        'rgba(54, 162, 235, 0.6)',
-                        'rgba(255, 206, 86, 0.6)',
-                        'rgba(255, 99, 132, 0.6)',
-                        'rgba(153, 102, 255, 0.6)',
-                        'rgba(255, 159, 64, 0.6)',
-                        'rgba(199, 199, 199, 0.6)',
-                        'rgba(83, 102, 255, 0.6)',
-                        'rgba(40, 159, 64, 0.6)',
-                        'rgba(210, 199, 199, 0.6)'
-                    ],
-                    borderColor: [
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)',
-                        'rgba(199, 199, 199, 1)',
-                        'rgba(83, 102, 255, 1)',
-                        'rgba(40, 159, 64, 1)',
-                        'rgba(210, 199, 199, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: chartOptions
-        });
-    }
-
     // Function to load chart data from API
     async function loadChartData(endpoint, chartId, type = 'bar', options = {}) {
         try {
@@ -705,14 +699,114 @@
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Response was not JSON");
+            }
+
             const data = await response.json();
             if (data.error) {
                 console.error('API Error:', data.error);
                 return;
             }
+
+            // Check if we have valid data
+            if (!data.labels || !data.data || data.labels.length === 0 || data.data.length === 0) {
+                console.warn(`No valid data received for chart ${chartId}`);
+                return;
+            }
+
             createOrUpdateChart(chartId, data, type, options);
         } catch (error) {
             console.error('Error loading chart data:', error);
+            // Display a user-friendly message in the chart container
+            const container = document.getElementById(chartId);
+            if (container) {
+                container.innerHTML = `<div class="alert alert-warning">Unable to load chart data. Please try again later.</div>`;
+            }
+        }
+    }
+
+    // Function to create or update a chart
+    function createOrUpdateChart(chartId, data, type = 'bar', options = {}) {
+        try {
+            const ctx = document.getElementById(chartId);
+            if (!ctx) {
+                console.warn(`Chart container ${chartId} not found`);
+                return;
+            }
+
+            // Destroy existing chart if it exists
+            if (window.charts && window.charts[chartId]) {
+                window.charts[chartId].destroy();
+            }
+
+            // Initialize charts object if it doesn't exist
+            if (!window.charts) {
+                window.charts = {};
+            }
+
+            // Default options
+            const defaultOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: type === 'pie' || type === 'doughnut',
+                        position: 'right'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return `${context.label}: ${context.raw}%`;
+                            }
+                        }
+                    }
+                },
+                scales: type !== 'pie' && type !== 'doughnut' ? {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function (value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                } : undefined
+            };
+
+            // Merge default options with provided options
+            const chartOptions = { ...defaultOptions, ...options };
+
+            // Create new chart
+            window.charts[chartId] = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.data,
+                        backgroundColor: data.colors || [
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(153, 102, 255, 0.6)',
+                            'rgba(255, 159, 64, 0.6)',
+                            'rgba(199, 199, 199, 0.6)',
+                            'rgba(83, 102, 255, 0.6)',
+                            'rgba(40, 159, 64, 0.6)',
+                            'rgba(210, 199, 199, 0.6)'
+                        ],
+                        borderColor: data.borderColors || data.colors || 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: chartOptions
+            });
+        } catch (error) {
+            console.error('Error creating/updating chart:', error);
         }
     }
 
