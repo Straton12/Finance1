@@ -5,11 +5,10 @@ Copyright (c) 2019 - present AppSeed.us
 
 import os
 from decouple import config
-from unipath import Path
+from pathlib import Path
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = Path(__file__).parent
-CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Build paths inside the project like this: BASE_DIR / 'subdir'
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
@@ -17,8 +16,8 @@ SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# load production server from .env
-ALLOWED_HOSTS = ['.vercel.app', '127.0.0.1', 'now.sh']
+# Load production server from .env
+ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -47,8 +46,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'core.urls'
 LOGIN_REDIRECT_URL = "home"  # Route defined in home/urls.py
-LOGOUT_REDIRECT_URL = '/login/'  # Route defined in home/urls.py
-TEMPLATE_DIR = os.path.join(CORE_DIR, "apps/templates")  # ROOT dir for templates
+LOGOUT_REDIRECT_URL = "home"  # Route defined in home/urls.py
+TEMPLATE_DIR = os.path.join(BASE_DIR, "apps/templates")  # ROOT dir for templates
 
 TEMPLATES = [
     {
@@ -71,40 +70,25 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-'''DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite3',
-    }
-}'''
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD': 'XrOQVnRtbHMjYTXeKkmWlPgpyJhJcgGn',
-        'HOST': 'shortline.proxy.rlwy.net',
-        'PORT': '50872',
+        'NAME': config('DB_NAME', default='railway'),
+        'USER': config('DB_USER', default='postgres'),
+        'PASSWORD': config('DB_PASSWORD', default='XrOQVnRtbHMjYTXeKkmWlPgpyJhJcgGn'),
+        'HOST': config('DB_HOST', default='shortline.proxy.rlwy.net'),
+        'PORT': config('DB_PORT', default='50872'),
     }
 }
+
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
 
@@ -141,11 +125,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
-    os.path.join(CORE_DIR, 'apps/static'),
-    os.path.join(CORE_DIR, 'apps/home/static'),
+    os.path.join(BASE_DIR, 'apps/static'),
 ]
-STATIC_ROOT = os.path.join(CORE_DIR, 'staticfiles')
 
 # Simplified static file serving
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
@@ -157,8 +140,11 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 # Model paths
-MODEL_PATH = os.path.join(CORE_DIR, 'apps', 'home', 'ml_models', 'voting_ensemble_model.pkl')
-SELECTOR_PATH = os.path.join(CORE_DIR, 'apps', 'home', 'ml_models', 'feature_selector.pkl')
-FEATURES_PATH = os.path.join(CORE_DIR, 'apps', 'home', 'ml_models', 'selected_features.pkl')
+MODEL_PATH = os.path.join(BASE_DIR, 'apps/home/ml_models/voting_ensemble_model.pkl')
+SELECTOR_PATH = os.path.join(BASE_DIR, 'apps/home/ml_models/feature_selector.pkl')
+FEATURES_PATH = os.path.join(BASE_DIR, 'apps/home/ml_models/selected_features.pkl')
 
 #############################################################
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
