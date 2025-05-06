@@ -142,13 +142,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(CORE_DIR, 'apps', 'static'),
-    os.path.join(CORE_DIR, 'apps', 'home', 'static'),
+    os.path.join(CORE_DIR, 'apps/static'),
+    os.path.join(CORE_DIR, 'apps/home/static'),
 ]
 STATIC_ROOT = os.path.join(CORE_DIR, 'staticfiles')
 
-# Enable whitenoise for static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Simplified static file serving
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+# Extra security headers for Vercel
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Model paths
 MODEL_PATH = os.path.join(CORE_DIR, 'apps', 'home', 'ml_models', 'voting_ensemble_model.pkl')
