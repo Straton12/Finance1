@@ -45,7 +45,7 @@ urlpatterns = [
     path('api/insurance-types-2021/', views.insurance_types_2021_api, name='insurance_types_2021_api'),
     path('api/debug-insurance/', views.debug_insurance_data, name='debug_insurance_data'),
     
-    # Other API endpoints
+    # Financial Services Overview endpoints
     path('api/banking-services/', views.banking_services_api, name='banking_services_api'),
     path('api/digital-services/', views.digital_services_api, name='digital_services_api'),
     path('api/loan-sources/', views.loan_sources_api, name='loan_sources_api'),

@@ -1,3 +1,4 @@
+version: '3.8'
 
 services:
   appseed-app:
@@ -5,20 +6,24 @@ services:
     restart: always
     env_file: .env
     build: .
+    volumes:
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
     ports:
-      - "8001:8000"  # Add this to expose the port
+      - "8000:8000"
     networks:
       - db_network
       - web_network
   nginx:
-    container_name: nginx1
+    container_name: nginx
     restart: always
     image: "nginx:latest"
     ports:
-      - "85:80"
-
+      - "80:80"
     volumes:
       - ./nginx:/etc/nginx/conf.d
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
     networks:
       - web_network
     depends_on: 

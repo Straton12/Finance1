@@ -820,319 +820,8 @@
         // Initialize Pension and Exclusion Charts for 2016
         await initializePensionAndExclusionCharts();
 
-        // Initialize Banking Services Chart
-        const bankingResponse = await fetch('/api/banking-services/');
-        if (bankingResponse.ok) {
-          const bankingData = await bankingResponse.json();
-          createOrUpdateChart('bankingServicesChart', {
-            labels: bankingData.labels,
-            data: bankingData.data,
-            backgroundColor: 'rgba(99, 102, 241, 0.8)',
-            borderColor: 'rgba(99, 102, 241, 1)'
-          }, 'bar', {
-            plugins: {
-              title: {
-                display: true,
-                text: 'Banking Services Usage',
-                font: { size: 16, weight: '600' },
-                padding: { bottom: 20 }
-              },
-              legend: {
-                display: false
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: 100,
-                grid: {
-                  color: 'rgba(0, 0, 0, 0.05)',
-                  drawBorder: false
-                },
-                ticks: {
-                  callback: function (value) {
-                    return value + '%';
-                  },
-                  font: { size: 12 }
-                }
-              },
-              x: {
-                grid: {
-                  display: false
-                },
-                ticks: {
-                  font: { size: 12 }
-                }
-              }
-            },
-            elements: {
-              bar: {
-                borderRadius: 8
-              }
-            }
-          });
-        }
-
-        // Initialize Digital Services Chart
-        const digitalResponse = await fetch('/api/digital-services/');
-        if (digitalResponse.ok) {
-          const digitalData = await digitalResponse.json();
-          createOrUpdateChart('digitalServicesChart', {
-            labels: digitalData.labels,
-            data: digitalData.data,
-            backgroundColor: 'rgba(99, 102, 241, 0.8)',
-            borderColor: 'rgba(99, 102, 241, 1)'
-          }, 'bar', {
-            plugins: {
-              title: {
-                display: true,
-                text: 'Digital Services Usage',
-                font: { size: 16, weight: '600' },
-                padding: { bottom: 20 }
-              },
-              legend: {
-                display: false
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: 100,
-                grid: {
-                  color: 'rgba(0, 0, 0, 0.05)',
-                  drawBorder: false
-                },
-                ticks: {
-                  callback: function (value) {
-                    return value + '%';
-                  },
-                  font: { size: 12 }
-                }
-              },
-              x: {
-                grid: {
-                  display: false
-                },
-                ticks: {
-                  font: { size: 12 }
-                }
-              }
-            },
-            elements: {
-              bar: {
-                borderRadius: 8
-              }
-            }
-          });
-        }
-
-        // Initialize Loan Sources Chart
-        const loanResponse = await fetch('/api/loan-sources/');
-        if (loanResponse.ok) {
-          const loanData = await loanResponse.json();
-          createOrUpdateChart('loanSourcesChart', {
-            labels: loanData.labels,
-            data: loanData.data,
-            backgroundColor: [
-              'rgba(99, 102, 241, 0.8)',
-              'rgba(79, 70, 229, 0.8)',
-              'rgba(67, 56, 202, 0.8)',
-              'rgba(55, 48, 163, 0.8)',
-              'rgba(49, 46, 129, 0.8)'
-            ],
-            borderColor: [
-              'rgba(99, 102, 241, 1)',
-              'rgba(79, 70, 229, 1)',
-              'rgba(67, 56, 202, 1)',
-              'rgba(55, 48, 163, 1)',
-              'rgba(49, 46, 129, 1)'
-            ]
-          }, 'doughnut', {
-            plugins: {
-              title: {
-                display: true,
-                text: 'Loan Sources Distribution',
-                font: { size: 16, weight: '600' },
-                padding: { bottom: 20 }
-              },
-              legend: {
-                position: 'right',
-                labels: {
-                  padding: 20,
-                  usePointStyle: true,
-                  pointStyle: 'circle'
-                }
-              },
-              tooltip: {
-                callbacks: {
-                  label: function (context) {
-                    return `${context.label}: ${context.raw.toFixed(1)}%`;
-                  }
-                }
-              }
-            },
-            elements: {
-              arc: {
-                borderWidth: 0
-              }
-            }
-          });
-        }
-
-        // Credit Types Chart
-        await loadChartData('/api/credit-types/', 'creditTypesChart', 'bar', {
-          plugins: {
-            title: {
-              display: true,
-              text: 'Distribution of Credit Types',
-              font: { size: 16, weight: '600' },
-              padding: { bottom: 20 }
-            },
-            legend: {
-              display: false
-            },
-            tooltip: {
-              callbacks: {
-                label: function (context) {
-                  return context.parsed.y.toFixed(1) + '%';
-                }
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(0, 0, 0, 0.05)',
-                drawBorder: false
-              },
-              ticks: {
-                callback: function (value) {
-                  return value + '%';
-                },
-                font: { size: 12 }
-              }
-            },
-            x: {
-              grid: {
-                display: false
-              },
-              ticks: {
-                font: { size: 12 }
-              }
-            }
-          },
-          elements: {
-            bar: {
-              borderRadius: 8,
-              backgroundColor: 'rgba(99, 102, 241, 0.8)'
-            }
-          }
-        });
-
-        // Insurance Types Chart
-        const insuranceResponse = await fetch('/api/insurance-types/');
-        if (insuranceResponse.ok) {
-          const insuranceData = await insuranceResponse.json();
-          createOrUpdateChart('insuranceTypesChart2016', {
-            labels: insuranceData.labels,
-            data: insuranceData.data,
-            backgroundColor: 'rgba(99, 102, 241, 0.2)',
-            borderColor: 'rgba(99, 102, 241, 1)',
-            borderWidth: 2,
-            pointBackgroundColor: 'rgba(99, 102, 241, 1)',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(99, 102, 241, 1)'
-          }, 'radar', {
-            plugins: {
-              title: {
-                display: true,
-                text: 'Insurance Types Distribution',
-                font: { size: 16, weight: '600' },
-                padding: { bottom: 20 }
-              },
-              legend: {
-                display: false
-              }
-            },
-            scales: {
-              r: {
-                beginAtZero: true,
-                grid: {
-                  color: 'rgba(0, 0, 0, 0.05)'
-                },
-                ticks: {
-                  callback: value => value + '%',
-                  font: { size: 12 }
-                }
-              }
-            }
-          });
-        }
-
-        // Savings Methods Chart
-        const savingsResponse = await fetch('/api/savings-methods/');
-        if (savingsResponse.ok) {
-          const savingsData = await savingsResponse.json();
-          createOrUpdateChart('savingsMethodsChart2016', {
-            labels: savingsData.labels,
-            data: savingsData.data,
-            backgroundColor: savingsData.colors || [
-              'rgba(99, 102, 241, 0.8)',
-              'rgba(79, 70, 229, 0.8)',
-              'rgba(67, 56, 202, 0.8)',
-              'rgba(55, 48, 163, 0.8)',
-              'rgba(49, 46, 129, 0.8)'
-            ],
-            borderColor: [
-              'rgba(99, 102, 241, 1)',
-              'rgba(79, 70, 229, 1)',
-              'rgba(67, 56, 202, 1)',
-              'rgba(55, 48, 163, 1)',
-              'rgba(49, 46, 129, 1)'
-            ]
-          }, 'polarArea', {
-            plugins: {
-              title: {
-                display: true,
-                text: 'Savings Methods Distribution',
-                font: { size: 16, weight: '600' },
-                padding: { bottom: 20 }
-              },
-              legend: {
-                position: 'bottom',
-                labels: {
-                  padding: 20,
-                  usePointStyle: true,
-                  pointStyle: 'circle'
-                }
-              },
-              tooltip: {
-                callbacks: {
-                  label: function (context) {
-                    return `${context.label}: ${context.raw.toFixed(1)}%`;
-                  }
-                }
-              }
-            },
-            scales: {
-              r: {
-                beginAtZero: true,
-                grid: {
-                  color: 'rgba(0, 0, 0, 0.05)'
-                },
-                ticks: {
-                  callback: value => value + '%',
-                  font: { size: 12 }
-                }
-              }
-            }
-          });
-        }
-
-        // Initialize savings type distribution chart
-        await initializeSavingsTypeChart();
+        // Initialize Financial Services Overview charts
+        await initializeFinancialServicesCharts();
 
       } catch (error) {
         console.error('Error initializing charts:', error);
@@ -1555,11 +1244,142 @@
       }
     }
 
+    // Initialize Financial Services Overview charts
+    async function initializeFinancialServicesCharts() {
+      try {
+        // Banking Services Chart
+        const bankingResponse = await fetch('/api/banking-services/');
+        if (bankingResponse.ok) {
+          const bankingData = await bankingResponse.json();
+          if (document.getElementById('bankingServicesChart')) {
+            new Chart(document.getElementById('bankingServicesChart').getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: bankingData.labels,
+                datasets: [{
+                  data: bankingData.data,
+                  backgroundColor: bankingData.colors,
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        return `${context.label}: ${context.raw.toFixed(1)}%`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      callback: value => value + '%'
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Digital Services Chart
+        const digitalResponse = await fetch('/api/digital-services/');
+        if (digitalResponse.ok) {
+          const digitalData = await digitalResponse.json();
+          if (document.getElementById('digitalServicesChart')) {
+            new Chart(document.getElementById('digitalServicesChart').getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: digitalData.labels,
+                datasets: [{
+                  data: digitalData.data,
+                  backgroundColor: digitalData.colors,
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        return `${context.label}: ${context.raw.toFixed(1)}%`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      callback: value => value + '%'
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Loan Sources Chart
+        const loanResponse = await fetch('/api/loan-sources/');
+        if (loanResponse.ok) {
+          const loanData = await loanResponse.json();
+          if (document.getElementById('loanSourcesChart')) {
+            new Chart(document.getElementById('loanSourcesChart').getContext('2d'), {
+              type: 'doughnut',
+              data: {
+                labels: loanData.labels,
+                datasets: [{
+                  data: loanData.data,
+                  backgroundColor: loanData.colors,
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'right',
+                    labels: {
+                      padding: 20,
+                      usePointStyle: true,
+                      pointStyle: 'circle'
+                    }
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        return `${context.label}: ${context.raw.toFixed(1)}%`;
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing Financial Services Overview charts:', error);
+      }
+    }
+
     // Initialize all charts when the document is ready
     document.addEventListener('DOMContentLoaded', function () {
-      initializeHealthInsuranceChart();
-      initializePensionAndExclusionCharts();
-      initializeSavingsTypeChart();
+      initializeFinancialServicesCharts();
     });
 
   </script>
@@ -1725,275 +1545,6 @@
                           const percentage = Math.round((context.raw / sum) * 100);
                           return `${context.label}: ${percentage}%`;
                         }
-                      }
-                    }
-                  }
-                }
-              });
-            }
-          }
-
-          // Banking Services
-          const bankingResponse = await fetch('/api/banking-services-api/');
-          if (bankingResponse.ok) {
-            const bankingData = await bankingResponse.json();
-            if (document.getElementById('bankingServicesChart')) {
-              new Chart(document.getElementById('bankingServicesChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                  labels: bankingData.labels,
-                  datasets: [{
-                    data: bankingData.data,
-                    backgroundColor: bankingData.colors || [
-                      '#06b6d4',
-                      '#0891b2',
-                      '#0e7490',
-                      '#155e75'
-                    ],
-                    borderWidth: 0
-                  }]
-                },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      display: false
-                    }
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      ticks: {
-                        callback: value => value + '%'
-                      }
-                    }
-                  }
-                }
-              });
-            }
-          }
-
-          // Digital Services
-          const digitalResponse = await fetch('/api/digital-services-api/');
-          if (digitalResponse.ok) {
-            const digitalData = await digitalResponse.json();
-            if (document.getElementById('digitalServicesChart')) {
-              new Chart(document.getElementById('digitalServicesChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                  labels: digitalData.labels,
-                  datasets: [{
-                    data: digitalData.data,
-                    backgroundColor: digitalData.colors || [
-                      '#f97316',
-                      '#ea580c',
-                      '#c2410c'
-                    ],
-                    borderWidth: 0
-                  }]
-                },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      display: false
-                    }
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      ticks: {
-                        callback: value => value + '%'
-                      }
-                    }
-                  }
-                }
-              });
-            }
-          }
-
-          // Loan Sources
-          const loanResponse = await fetch('/api/loan-sources-api/');
-          if (loanResponse.ok) {
-            const loanData = await loanResponse.json();
-            if (document.getElementById('loanSourcesChart')) {
-              new Chart(document.getElementById('loanSourcesChart').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                  labels: loanData.labels,
-                  datasets: [{
-                    data: loanData.data,
-                    backgroundColor: loanData.colors || [
-                      'rgba(99, 102, 241, 0.8)',
-                      'rgba(79, 70, 229, 0.8)',
-                      'rgba(67, 56, 202, 0.8)',
-                      'rgba(55, 48, 163, 0.8)',
-                      'rgba(49, 46, 129, 0.8)'
-                    ],
-                    borderColor: loanData.borderColor || [
-                      'rgba(99, 102, 241, 1)',
-                      'rgba(79, 70, 229, 1)',
-                      'rgba(67, 56, 202, 1)',
-                      'rgba(55, 48, 163, 1)',
-                      'rgba(49, 46, 129, 1)'
-                    ]
-                  }]
-                },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    title: {
-                      display: true,
-                      text: 'Loan Sources Distribution',
-                      font: { size: 16, weight: '600' },
-                      padding: { bottom: 20 }
-                    },
-                    legend: {
-                      position: 'right',
-                      labels: {
-                        padding: 20,
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                      }
-                    }
-                  }
-                }
-              });
-            }
-          }
-
-          // Credit Types
-          const creditResponse = await fetch('/api/credit-types-api/');
-          if (creditResponse.ok) {
-            const creditData = await creditResponse.json();
-            if (document.getElementById('creditTypesChart')) {
-              new Chart(document.getElementById('creditTypesChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                  labels: creditData.labels,
-                  datasets: [{
-                    data: creditData.data,
-                    backgroundColor: creditData.colors || [
-                      'rgba(99, 102, 241, 0.8)',
-                      'rgba(79, 70, 229, 0.8)',
-                      'rgba(67, 56, 202, 0.8)',
-                      'rgba(55, 48, 163, 0.8)',
-                      'rgba(49, 46, 129, 0.8)'
-                    ],
-                    borderColor: creditData.borderColor || [
-                      'rgba(99, 102, 241, 1)',
-                      'rgba(79, 70, 229, 1)',
-                      'rgba(67, 56, 202, 1)',
-                      'rgba(55, 48, 163, 1)',
-                      'rgba(49, 46, 129, 1)'
-                    ]
-                  }]
-                },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    title: {
-                      display: true,
-                      text: 'Distribution of Credit Types',
-                      font: { size: 16, weight: '600' },
-                      padding: { bottom: 20 }
-                    },
-                    legend: {
-                      display: false
-                    }
-                  }
-                }
-              });
-            }
-          }
-
-          // Insurance Types
-          const insuranceResponse = await fetch('/api/insurance-types-api/');
-          if (insuranceResponse.ok) {
-            const insuranceData = await insuranceResponse.json();
-            if (document.getElementById('insuranceTypesChart2016')) {
-              new Chart(document.getElementById('insuranceTypesChart2016').getContext('2d'), {
-                type: 'radar',
-                data: {
-                  labels: insuranceData.labels,
-                  datasets: [{
-                    data: insuranceData.data,
-                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                    borderColor: '#10b981',
-                    borderWidth: 2
-                  }]
-                },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    title: {
-                      display: true,
-                      text: 'Insurance Types Distribution',
-                      font: { size: 16, weight: '600' },
-                      padding: { bottom: 20 }
-                    },
-                    legend: {
-                      display: false
-                    }
-                  }
-                }
-              });
-            }
-          }
-
-          // Health Insurance
-          const healthResponse = await fetch('/api/health-insurance-coverage/');
-          if (healthResponse.ok) {
-            const healthData = await healthResponse.json();
-            if (document.getElementById('healthInsuranceChart')) {
-              new Chart(document.getElementById('healthInsuranceChart').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                  labels: ['NHIF', 'Other Health Insurance', 'No Insurance'],
-                  labels: healthData.labels,
-                  datasets: [{
-                    data: healthData.data,
-                    backgroundColor: healthData.colors,
-                    borderWidth: 0,
-                    borderRadius: 4
-                  }]
-                },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      display: false
-                    },
-                    tooltip: {
-                      callbacks: {
-                        label: function (context) {
-                          return `${context.label}: ${context.raw}%`;
-                        }
-                      }
-                    }
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      grid: {
-                        display: true,
-                        color: 'rgba(0, 0, 0, 0.1)'
-                      },
-                      ticks: {
-                        callback: function (value) {
-                          return value + '%';
-                        }
-                      }
-                    },
-                    x: {
-                      grid: {
-                        display: false
                       }
                     }
                   }
