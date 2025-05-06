@@ -6,6 +6,7 @@ Copyright (c) 2019 - present AppSeed.us
 import os
 from decouple import config
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -17,7 +18,7 @@ SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Load production server from .env
-ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -68,17 +69,21 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/3.0/ref/settings/#databases
-
+# Use DATABASE_URL environment variable if available, otherwise use default settings
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='railway'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default='XrOQVnRtbHMjYTXeKkmWlPgpyJhJcgGn'),
-        'HOST': config('DB_HOST', default='shortline.proxy.rlwy.net'),
-        'PORT': config('DB_PORT', default='50872'),
-    }
+    'default': dj_database_url.config(
+        default=config(
+            'DATABASE_URL',
+            default='postgresql://{}:{}@{}:{}/{}'.format(
+                config('DB_USER', default='postgres'),
+                config('DB_PASSWORD', default='XrOQVnRtbHMjYTXeKkmWlPgpyJhJcgGn'),
+                config('DB_HOST', default='shortline.proxy.rlwy.net'),
+                config('DB_PORT', default='50872'),
+                config('DB_NAME', default='railway')
+            )
+        ),
+        conn_max_age=600
+    )
 }
 
 # Password validation
@@ -91,7 +96,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
-
+# Logging configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -102,7 +107,14 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'DEBUG',
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
     },
 }
 
@@ -135,7 +147,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Extra security headers for Vercel
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False  # Handled by Vercel
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
@@ -148,3 +160,6 @@ FEATURES_PATH = os.path.join(BASE_DIR, 'apps/home/ml_models/selected_features.pk
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ML Model settings
+ML_MODELS_DIR = os.path.join(BASE_DIR, 'apps/home/ml_models')

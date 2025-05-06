@@ -2,12 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "core/wsgi.py",
+      "src": "core/vercel_app.py",
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "10mb",
-        "runtime": "python3.12",
-        "buildCommand": "pip install --no-cache-dir -r requirements.txt && python manage.py collectstatic --noinput"
+        "runtime": "python3.12"
       }
     }
   ],
@@ -18,12 +17,15 @@
     },
     {
       "src": "/(.*)",
-      "dest": "core/wsgi.py"
+      "dest": "core/vercel_app.py"
     }
   ],
   "env": {
     "PYTHONPATH": ".",
     "DJANGO_SETTINGS_MODULE": "core.settings",
-    "DISABLE_COLLECTSTATIC": "1"
+    "DISABLE_COLLECTSTATIC": "1",
+    "DEBUG": "False",
+    "ALLOWED_HOSTS": ".vercel.app",
+    "DJANGO_ENV": "production"
   }
 }
