@@ -5,9 +5,9 @@
       "src": "core/wsgi.py",
       "use": "@vercel/python",
       "config": {
-        "maxLambdaSize": "15mb",
+        "maxLambdaSize": "10mb",
         "runtime": "python3.12",
-        "buildCommand": "pip install --upgrade pip && pip install -r requirements.txt && python manage.py collectstatic --noinput"
+        "buildCommand": "pip install --no-cache-dir -r requirements.txt && python manage.py collectstatic --noinput"
       }
     }
   ],
@@ -23,6 +23,7 @@
   ],
   "env": {
     "PYTHONPATH": ".",
-    "DJANGO_SETTINGS_MODULE": "core.settings"
+    "DJANGO_SETTINGS_MODULE": "core.settings",
+    "DISABLE_COLLECTSTATIC": "1"
   }
 }
