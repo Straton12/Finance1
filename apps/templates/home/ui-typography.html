@@ -928,6 +928,7 @@
                 return `${context.label}: ${context.raw}`;
               }
             }
+
           }
         },
         scales: type === 'bar' ? {
@@ -1230,12 +1231,31 @@
         chartId: 'savingsChannelsChart',
         type: 'polarArea',
         options: {
+          responsive: true,
+          maintainAspectRatio: false,
           plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                usePointStyle: true,
+                font: { size: 12, family: "'Inter', sans-serif" }
+              }
+            },
             tooltip: {
               callbacks: {
                 label: function (context) {
-                  return `${context.label}: ${context.raw}`;
+                  return `${context.label}: ${context.raw.toFixed(1)}%`;
                 }
+              }
+            }
+          },
+          scales: {
+            r: {
+              beginAtZero: true,
+              ticks: {
+                callback: value => value + '%',
+                font: { size: 12 }
               }
             }
           }
@@ -1246,10 +1266,32 @@
         chartId: 'digitalSavingsChart',
         type: 'bar',
         options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw.toFixed(1)}%`;
+                }
+              }
+            }
+          },
           scales: {
             y: {
               beginAtZero: true,
-              ticks: { callback: value => value }
+              ticks: {
+                callback: value => value + '%',
+                font: { size: 12 }
+              }
+            },
+            x: {
+              ticks: {
+                font: { size: 12 }
+              }
             }
           }
         }
@@ -1295,11 +1337,12 @@
         }
       },
       {
-        endpoint: '/api/insurance-types/',
+        endpoint: '/api/insurance-types-2021/',
         chartId: 'insuranceTypesChart',
         type: 'bar',
         options: {
-          parsing: false,
+          responsive: true,
+          maintainAspectRatio: false,
           scales: {
             y: {
               beginAtZero: true,
@@ -1309,9 +1352,18 @@
                   return value + '%';
                 }
               }
+            },
+            x: {
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45
+              }
             }
           },
           plugins: {
+            legend: {
+              display: false
+            },
             tooltip: {
               callbacks: {
                 label: function (context) {
@@ -1387,6 +1439,233 @@
   // Call the initialization function when the document is ready
   document.addEventListener('DOMContentLoaded', function () {
     initializeDigitalVsTraditionalChart();
+  });
+
+  // Initialize insurance types chart
+  function initializeInsuranceTypesChart() {
+    console.log('Initializing Insurance Types Chart');
+    const ctx = document.getElementById('insuranceTypesChart').getContext('2d');
+
+    // Show loading state
+    if (window.insuranceTypesChart) {
+      window.insuranceTypesChart.destroy();
+    }
+
+    fetch('/api/insurance-types-2021/')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Received data:', data);
+
+        if (data.error) {
+          console.error('Error from API:', data.error);
+          return;
+        }
+
+        window.insuranceTypesChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.labels,
+            datasets: [{
+              label: 'Insurance Types Distribution (%)',
+              data: data.data,
+              backgroundColor: data.colors,
+              borderColor: data.colors,
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function (value) {
+                    return value + '%';
+                  }
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return context.parsed.y.toFixed(2) + '%';
+                  }
+                }
+              }
+            }
+          }
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching insurance types data:', error);
+      });
+  }
+
+  // Initialize health insurance chart
+  async function initializeHealthInsurance2021Chart() {
+    try {
+      const response = await fetch('/api/health-insurance-2021/');
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+
+      const ctx = document.getElementById('healthInsuranceChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['NHIF', 'Other Health Insurance', 'No Insurance'],
+          datasets: [{
+            data: data.data,
+            backgroundColor: [
+              'rgba(99, 102, 241, 0.7)',
+              'rgba(14, 165, 233, 0.7)',
+              'rgba(107, 114, 128, 0.7)'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw}%`;
+                }
+              }
+            }
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error loading health insurance chart:', error);
+      document.getElementById('healthInsuranceChart').parentElement.innerHTML =
+        '<div class="alert alert-danger">Failed to load chart data. Please try again later.</div>';
+    }
+  }
+
+  // Initialize asset insurance chart
+  async function initializeAssetInsurance2021Chart() {
+    try {
+      const response = await fetch('/api/asset-insurance-2021/');
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+
+      const ctx = document.getElementById('assetInsuranceChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Motor Insurance', 'Home Insurance', 'No Asset Insurance'],
+          datasets: [{
+            data: data.data,
+            backgroundColor: [
+              'rgba(14, 165, 233, 0.7)',
+              'rgba(244, 63, 94, 0.7)',
+              'rgba(107, 114, 128, 0.7)'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw}%`;
+                }
+              }
+            }
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error loading asset insurance chart:', error);
+      document.getElementById('assetInsuranceChart').parentElement.innerHTML =
+        '<div class="alert alert-danger">Failed to load chart data. Please try again later.</div>';
+    }
+  }
+
+  // Initialize agricultural insurance chart
+  async function initializeAgriInsurance2021Chart() {
+    try {
+      const response = await fetch('/api/agri-insurance-2021/');
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+
+      const ctx = document.getElementById('agriInsuranceChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Crop Insurance', 'Livestock Insurance', 'No Agri Insurance'],
+          datasets: [{
+            data: data.data,
+            backgroundColor: [
+              'rgba(234, 179, 8, 0.7)',
+              'rgba(168, 85, 247, 0.7)',
+              'rgba(107, 114, 128, 0.7)'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function (value) {
+                  return value + '%';
+                }
+              }
+            }
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error loading agricultural insurance chart:', error);
+      document.getElementById('agriInsuranceChart').parentElement.innerHTML =
+        '<div class="alert alert-danger">Failed to load chart data. Please try again later.</div>';
+    }
+  }
+
+  // Initialize all charts when the document is loaded
+  document.addEventListener('DOMContentLoaded', function () {
+    // ... existing code ...
+
+    // Initialize 2021 insurance charts
+    initializeInsuranceTypesChart();
+    initializeHealthInsurance2021Chart();
+    initializeAssetInsurance2021Chart();
+    initializeAgriInsurance2021Chart();
   });
 </script>
 

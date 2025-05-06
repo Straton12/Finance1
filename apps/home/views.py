@@ -5,7 +5,7 @@ Copyright (c) 2019 - present AppSeed.us
 from lime.lime_tabular import LimeTabularExplainer
 from .forms import PredictionForm
 from .models import SurveyData2016
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.views.decorators.http import require_GET
 from rest_framework.decorators import api_view
 import os
@@ -919,7 +919,7 @@ def credit_types_api(request):
 def insurance_types_api(request):
     try:
         total = SurveyData2016.objects.count()
-        print(f"Total insurance respondents: {total}")
+        print(f"Total respondents for insurance types: {total}")
         
         if total == 0:
             return JsonResponse({'labels': [], 'data': [], 'colors': []})
@@ -1144,75 +1144,126 @@ def agri_insurance_api(request):
 @require_GET
 def savings_channels_api(request):
     try:
-        total = SurveyData2016.objects.count()
-        print(f"Total respondents for savings channels: {total}")
+        # Get total count
+        total = SurveyData2021.objects.count()
+        print(f"Total records in SurveyData2021: {total}")
         
         if total == 0:
-            return JsonResponse({'labels': [], 'data': [], 'colors': []})
-            
-        # Get counts with case-insensitive matching
-        channels = {
-            'Mobile Banking': SurveyData2016.objects.filter(Q(savings_mobile_banking__iexact='yes') | Q(savings_mobile_banking__iexact='y')).count(),
-            'Microfinance': SurveyData2016.objects.filter(Q(savings_microfinance__iexact='yes') | Q(savings_microfinance__iexact='y')).count(),
-            'SACCO': SurveyData2016.objects.filter(Q(savings_sacco__iexact='yes') | Q(savings_sacco__iexact='y')).count(),
-            'Group/Friends': SurveyData2016.objects.filter(Q(savings_group_friends__iexact='yes') | Q(savings_group_friends__iexact='y')).count(),
-            'Family/Friend': SurveyData2016.objects.filter(Q(savings_family_friend__iexact='yes') | Q(savings_family_friend__iexact='y')).count(),
-            'Secret Place': SurveyData2016.objects.filter(Q(savings_secret_place__iexact='yes') | Q(savings_secret_place__iexact='y')).count()
-        }
+            print("No records found in SurveyData2021")
+            return JsonResponse({'error': 'No data available'}, status=404)
         
-        print(f"Raw savings channel counts: {channels}")
+        # Get individual counts with case-insensitive matching and handling True/False values
+        mobile_banking = SurveyData2021.objects.filter(
+            Q(savings_mobile_banking__iexact='yes') | 
+            Q(savings_mobile_banking__iexact='y') |
+            Q(savings_mobile_banking__iexact='true')
+        ).count()
+        
+        microfinance = SurveyData2021.objects.filter(
+            Q(savings_microfinance__iexact='yes') | 
+            Q(savings_microfinance__iexact='y') |
+            Q(savings_microfinance__iexact='true')
+        ).count()
+        
+        sacco = SurveyData2021.objects.filter(
+            Q(savings_sacco__iexact='yes') | 
+            Q(savings_sacco__iexact='y') |
+            Q(savings_sacco__iexact='true')
+        ).count()
+        
+        group_friends = SurveyData2021.objects.filter(
+            Q(savings_group_friends__iexact='yes') | 
+            Q(savings_group_friends__iexact='y') |
+            Q(savings_group_friends__iexact='true')
+        ).count()
+        
+        family_friend = SurveyData2021.objects.filter(
+            Q(savings_family_friend__iexact='yes') | 
+            Q(savings_family_friend__iexact='y') |
+            Q(savings_family_friend__iexact='true')
+        ).count()
+        
+        secret_place = SurveyData2021.objects.filter(
+            Q(savings_secret_place__iexact='yes') | 
+            Q(savings_secret_place__iexact='y') |
+            Q(savings_secret_place__iexact='true')
+        ).count()
+        
+        print(f"Raw counts - Mobile Banking: {mobile_banking}, Microfinance: {microfinance}, SACCO: {sacco}")
+        print(f"Raw counts - Group/Friends: {group_friends}, Family/Friend: {family_friend}, Secret Place: {secret_place}")
         
         # Calculate percentages
-        percentages = {k: round((v / total) * 100, 2) for k, v in channels.items()}
-        
-        print(f"Savings channel percentages: {percentages}")
-        
         data = {
-            'labels': list(percentages.keys()),
-            'data': list(percentages.values()),
+            'labels': ['Mobile Banking', 'Microfinance', 'SACCO', 'Group/Friends', 'Family/Friend', 'Secret Place'],
+            'data': [
+                round((mobile_banking / total) * 100, 2),
+                round((microfinance / total) * 100, 2),
+                round((sacco / total) * 100, 2),
+                round((group_friends / total) * 100, 2),
+                round((family_friend / total) * 100, 2),
+                round((secret_place / total) * 100, 2)
+            ],
             'colors': ['#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63', '#083344']
         }
         
-        print(f"Final savings channels response: {data}")
+        print(f"Final response data: {data}")
         return JsonResponse(data)
     except Exception as e:
-        logger.error(f"Error in savings_channels_api: {str(e)}")
-        return JsonResponse({'labels': [], 'data': [], 'colors': []})
+        print(f"Error in savings_channels_api: {str(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 @require_GET
 def digital_savings_api(request):
     try:
-        total = SurveyData2016.objects.count()
-        print(f"Total respondents for digital savings: {total}")
+        # Get total count
+        total = SurveyData2021.objects.count()
+        print(f"Total records in SurveyData2021: {total}")
         
         if total == 0:
-            return JsonResponse({'labels': [], 'data': [], 'colors': []})
-            
-        # Get counts with case-insensitive matching
-        digital_savings = {
-            'Mobile Banking': SurveyData2016.objects.filter(Q(savings_mobile_banking__iexact='yes') | Q(savings_mobile_banking__iexact='y')).count(),
-            'Digital Wallet': SurveyData2016.objects.filter(Q(mobile_money_registered__iexact='yes') | Q(mobile_money_registered__iexact='y')).count(),
-            'Credit Card': SurveyData2016.objects.filter(Q(credit_card__iexact='yes') | Q(credit_card__iexact='y')).count()
-        }
+            print("No records found in SurveyData2021")
+            return JsonResponse({'error': 'No data available'}, status=404)
         
-        print(f"Raw digital savings counts: {digital_savings}")
+        # Get individual counts with case-insensitive matching and handling True/False values
+        mobile_banking = SurveyData2021.objects.filter(
+            Q(savings_mobile_banking__iexact='yes') | 
+            Q(savings_mobile_banking__iexact='y') |
+            Q(savings_mobile_banking__iexact='true')
+        ).count()
+        
+        digital_wallet = SurveyData2021.objects.filter(
+            Q(mobile_money_registered__iexact='yes') | 
+            Q(mobile_money_registered__iexact='y') |
+            Q(mobile_money_registered__iexact='true')
+        ).count()
+        
+        credit_card = SurveyData2021.objects.filter(
+            Q(credit_card__iexact='yes') | 
+            Q(credit_card__iexact='y') |
+            Q(credit_card__iexact='true')
+        ).count()
+        
+        print(f"Raw counts - Mobile Banking: {mobile_banking}, Digital Wallet: {digital_wallet}, Credit Card: {credit_card}")
         
         # Calculate percentages
-        percentages = {k: round((v / total) * 100, 2) for k, v in digital_savings.items()}
-        
-        print(f"Digital savings percentages: {percentages}")
-        
         data = {
-            'labels': list(percentages.keys()),
-            'data': list(percentages.values()),
+            'labels': ['Mobile Banking', 'Digital Wallet', 'Credit Card'],
+            'data': [
+                round((mobile_banking / total) * 100, 2),
+                round((digital_wallet / total) * 100, 2),
+                round((credit_card / total) * 100, 2)
+            ],
             'colors': ['#06b6d4', '#0891b2', '#0e7490']
         }
         
-        print(f"Final digital savings response: {data}")
+        print(f"Final response data: {data}")
         return JsonResponse(data)
     except Exception as e:
-        logger.error(f"Error in digital_savings_api: {str(e)}")
-        return JsonResponse({'labels': [], 'data': [], 'colors': []})
+        print(f"Error in digital_savings_api: {str(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 @require_GET
 def account_types_api(request):
@@ -1361,11 +1412,253 @@ def health_insurance_coverage_api(request):
         logger.error(f"Error in health_insurance_coverage_api: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
 
+@login_required(login_url="/login/")
+def insurance_types_2021(request):
+    try:
+        total_respondents = SurveyData2021.objects.count()
+        
+        # Get counts for each insurance type (case-insensitive)
+        nhif_count = SurveyData2021.objects.filter(Q(insurance_nhif__iexact='yes')).count()
+        health_other_count = SurveyData2021.objects.filter(Q(insurance_health_other__iexact='yes')).count()
+        motor_count = SurveyData2021.objects.filter(Q(insurance_motor__iexact='yes')).count()
+        home_count = SurveyData2021.objects.filter(Q(insurance_home__iexact='yes')).count()
+        crop_count = SurveyData2021.objects.filter(Q(insurance_crop__iexact='yes')).count()
+        livestock_count = SurveyData2021.objects.filter(Q(insurance_livestock__iexact='yes')).count()
+        life_count = SurveyData2021.objects.filter(Q(insurance_life__iexact='yes')).count()
+        education_count = SurveyData2021.objects.filter(Q(insurance_education__iexact='yes')).count()
+        other_count = SurveyData2021.objects.filter(Q(insurance_other__iexact='yes')).count()
+        
+        # Calculate percentages
+        data = {
+            'labels': ['NHIF', 'Other Health', 'Motor', 'Home', 'Crop', 'Livestock', 'Life', 'Education', 'Other'],
+            'data': [
+                round(nhif_count / total_respondents * 100, 2),
+                round(health_other_count / total_respondents * 100, 2),
+                round(motor_count / total_respondents * 100, 2),
+                round(home_count / total_respondents * 100, 2),
+                round(crop_count / total_respondents * 100, 2),
+                round(livestock_count / total_respondents * 100, 2),
+                round(life_count / total_respondents * 100, 2),
+                round(education_count / total_respondents * 100, 2),
+                round(other_count / total_respondents * 100, 2)
+            ],
+            'colors': [
+                'rgba(16, 185, 129, 0.7)',  # Green
+                'rgba(99, 102, 241, 0.7)',   # Indigo
+                'rgba(14, 165, 233, 0.7)',   # Sky
+                'rgba(244, 63, 94, 0.7)',    # Rose
+                'rgba(234, 179, 8, 0.7)',    # Yellow
+                'rgba(168, 85, 247, 0.7)',   # Purple
+                'rgba(239, 68, 68, 0.7)',    # Red
+                'rgba(59, 130, 246, 0.7)',   # Blue
+                'rgba(107, 114, 128, 0.7)'   # Gray
+            ]
+        }
+        
+        return JsonResponse(data)
+    except Exception as e:
+        logger.error(f"Error in insurance_types_2021: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
+@login_required(login_url="/login/")
+def health_insurance_2021(request):
+    try:
+        total_respondents = SurveyData2021.objects.count()
+        
+        # Get counts for health insurance (case-insensitive)
+        nhif_count = SurveyData2021.objects.filter(Q(insurance_nhif__iexact='yes')).count()
+        health_other_count = SurveyData2021.objects.filter(Q(insurance_health_other__iexact='yes')).count()
+        no_insurance = total_respondents - (nhif_count + health_other_count)
+        
+        data = {
+            'labels': ['NHIF', 'Other Health Insurance', 'No Insurance'],
+            'data': [
+                round(nhif_count / total_respondents * 100, 2),
+                round(health_other_count / total_respondents * 100, 2),
+                round(no_insurance / total_respondents * 100, 2)
+            ],
+            'colors': [
+                'rgba(99, 102, 241, 0.7)',
+                'rgba(14, 165, 233, 0.7)',
+                'rgba(107, 114, 128, 0.7)'
+            ]
+        }
+        
+        return JsonResponse(data)
+    except Exception as e:
+        logger.error(f"Error in health_insurance_2021: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
+@login_required(login_url="/login/")
+def asset_insurance_2021(request):
+    try:
+        total_respondents = SurveyData2021.objects.count()
+        
+        # Get counts for asset insurance (case-insensitive)
+        motor_count = SurveyData2021.objects.filter(Q(insurance_motor__iexact='yes')).count()
+        home_count = SurveyData2021.objects.filter(Q(insurance_home__iexact='yes')).count()
+        no_asset_insurance = total_respondents - (motor_count + home_count)
+        
+        data = {
+            'labels': ['Motor Insurance', 'Home Insurance', 'No Asset Insurance'],
+            'data': [
+                round(motor_count / total_respondents * 100, 2),
+                round(home_count / total_respondents * 100, 2),
+                round(no_asset_insurance / total_respondents * 100, 2)
+            ],
+            'colors': [
+                'rgba(14, 165, 233, 0.7)',
+                'rgba(244, 63, 94, 0.7)',
+                'rgba(107, 114, 128, 0.7)'
+            ]
+        }
+        
+        return JsonResponse(data)
+    except Exception as e:
+        logger.error(f"Error in asset_insurance_2021: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
+@login_required(login_url="/login/")
+def agri_insurance_2021(request):
+    try:
+        total_respondents = SurveyData2021.objects.count()
+        
+        # Get counts for agricultural insurance (case-insensitive)
+        crop_count = SurveyData2021.objects.filter(Q(insurance_crop__iexact='yes')).count()
+        livestock_count = SurveyData2021.objects.filter(Q(insurance_livestock__iexact='yes')).count()
+        no_agri_insurance = total_respondents - (crop_count + livestock_count)
+        
+        data = {
+            'labels': ['Crop Insurance', 'Livestock Insurance', 'No Agricultural Insurance'],
+            'data': [
+                round(crop_count / total_respondents * 100, 2),
+                round(livestock_count / total_respondents * 100, 2),
+                round(no_agri_insurance / total_respondents * 100, 2)
+            ],
+            'colors': [
+                'rgba(234, 179, 8, 0.7)',
+                'rgba(168, 85, 247, 0.7)',
+                'rgba(107, 114, 128, 0.7)'
+            ]
+        }
+        
+        return JsonResponse(data)
+    except Exception as e:
+        logger.error(f"Error in agri_insurance_2021: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+@require_GET
+def insurance_types_2021_api(request):
+    try:
+        total_respondents = SurveyData2021.objects.count()
+        print(f"Total respondents in database: {total_respondents}")
+        
+        if total_respondents == 0:
+            print("No respondents found in database")
+            return JsonResponse({'labels': [], 'data': [], 'colors': []})
+            
+        # Get counts for each insurance type with case-insensitive matching
+        insurance_counts = {
+            'NHIF': SurveyData2021.objects.filter(insurance_nhif='True').count(),
+            'Other Health': SurveyData2021.objects.filter(insurance_health_other='True').count(),
+            'Motor': SurveyData2021.objects.filter(insurance_motor='True').count(),
+            'Home': SurveyData2021.objects.filter(insurance_home='True').count(),
+            'Crop': SurveyData2021.objects.filter(insurance_crop='True').count(),
+            'Livestock': SurveyData2021.objects.filter(insurance_livestock='True').count(),
+            'Life': SurveyData2021.objects.filter(insurance_life='True').count(),
+            'Education': SurveyData2021.objects.filter(insurance_education='True').count(),
+            'Other': SurveyData2021.objects.filter(insurance_other='True').count()
+        }
+        
+        print(f"Raw insurance counts: {insurance_counts}")
+        
+        # Calculate percentages
+        insurance_percentages = {k: round((v / total_respondents) * 100, 2) for k, v in insurance_counts.items()}
+        print(f"Insurance percentages: {insurance_percentages}")
+        
+        # Define gradient colors
+        colors = [
+            'rgba(16, 185, 129, 0.7)',  # Green - NHIF
+            'rgba(99, 102, 241, 0.7)',   # Indigo - Other Health
+            'rgba(14, 165, 233, 0.7)',   # Sky - Motor
+            'rgba(244, 63, 94, 0.7)',    # Rose - Home
+            'rgba(234, 179, 8, 0.7)',    # Yellow - Crop
+            'rgba(168, 85, 247, 0.7)',   # Purple - Livestock
+            'rgba(239, 68, 68, 0.7)',    # Red - Life
+            'rgba(59, 130, 246, 0.7)',   # Blue - Education
+            'rgba(107, 114, 128, 0.7)'   # Gray - Other
+        ]
+        
+        data = {
+            'labels': list(insurance_percentages.keys()),
+            'data': list(insurance_percentages.values()),
+            'colors': colors
+        }
+        
+        print(f"Final response data: {data}")
+        return JsonResponse(data)
+    except Exception as e:
+        print(f"Error in insurance_types_2021_api: {str(e)}")
+        logger.error(f"Error in insurance_types_2021_api: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 ######################
 #####################
 ##########################
 ###################
+
+@require_GET
+def debug_insurance_data(request):
+    try:
+        total_count = SurveyData2021.objects.count()
+        
+        # Get the first record to check actual values
+        sample = SurveyData2021.objects.first()
+        
+        # Check counts for both 'True' and 'Yes'
+        insurance_data = {
+            'total_records': total_count,
+            'sample_raw_values': {
+                'insurance_nhif': str(sample.insurance_nhif),
+                'insurance_health_other': str(sample.insurance_health_other),
+                'insurance_motor': str(sample.insurance_motor),
+                'insurance_home': str(sample.insurance_home),
+                'insurance_crop': str(sample.insurance_crop),
+                'insurance_livestock': str(sample.insurance_livestock),
+                'insurance_life': str(sample.insurance_life),
+                'insurance_education': str(sample.insurance_education),
+                'insurance_other': str(sample.insurance_other)
+            },
+            'counts_true': {
+                'NHIF': SurveyData2021.objects.filter(insurance_nhif='True').count(),
+                'Other Health': SurveyData2021.objects.filter(insurance_health_other='True').count(),
+                'Motor': SurveyData2021.objects.filter(insurance_motor='True').count(),
+                'Home': SurveyData2021.objects.filter(insurance_home='True').count(),
+                'Crop': SurveyData2021.objects.filter(insurance_crop='True').count(),
+                'Livestock': SurveyData2021.objects.filter(insurance_livestock='True').count(),
+                'Life': SurveyData2021.objects.filter(insurance_life='True').count(),
+                'Education': SurveyData2021.objects.filter(insurance_education='True').count(),
+                'Other': SurveyData2021.objects.filter(insurance_other='True').count()
+            },
+            'counts_yes': {
+                'NHIF': SurveyData2021.objects.filter(insurance_nhif='Yes').count(),
+                'Other Health': SurveyData2021.objects.filter(insurance_health_other='Yes').count(),
+                'Motor': SurveyData2021.objects.filter(insurance_motor='Yes').count(),
+                'Home': SurveyData2021.objects.filter(insurance_home='Yes').count(),
+                'Crop': SurveyData2021.objects.filter(insurance_crop='Yes').count(),
+                'Livestock': SurveyData2021.objects.filter(insurance_livestock='Yes').count(),
+                'Life': SurveyData2021.objects.filter(insurance_life='Yes').count(),
+                'Education': SurveyData2021.objects.filter(insurance_education='Yes').count(),
+                'Other': SurveyData2021.objects.filter(insurance_other='Yes').count()
+            }
+        }
+        
+        print("Debug - Total records:", total_count)
+        print("Debug - Sample raw values:", insurance_data['sample_raw_values'])
+        print("Debug - True counts:", insurance_data['counts_true'])
+        print("Debug - Yes counts:", insurance_data['counts_yes'])
+        
+        return JsonResponse(insurance_data)
+    except Exception as e:
+        print("Debug - Error:", str(e))
+        return JsonResponse({'error': str(e)}, status=500)
